@@ -1,0 +1,228 @@
+<!DOCTYPE html> 
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vue Basics</title>
+    <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="https://unpkg.com/vue@next" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header>
+      <h2 class="topTitle">Monster Slayer Game</h2>
+    </header>
+    <div id="game">
+      <div v-show="detailsSaved === false">
+        <section id="setup" class="container">
+          <form @submit.prevent="submitDetails">
+            <fieldset>
+              <legend>Monster's Details</legend>
+              <!-- ---------- Monster's Details ----------- -->
+              <div>
+                <label for="monsterName">Monster Name : </label>
+                <input type="text" id="monsterName" name="monsterName" required @keyup="checkNamesConflict" @keypress="isString($event)" v-model.trim="monster.name" />
+                <span class="validity"></span>
+              </div>
+              <br />
+              <div>
+                <label for="monsterHealth">Health Points (1 - 100): </label>
+                <input type="number" id="monsterHealth" name="monsterHealth" required min="1" max="100" @keypress="isNumber($event)" v-model.number="monster.health" />
+                <span class="validity"></span>
+              </div>
+              <br />
+              <div>
+                <label for="monsterSpeed">Speed (1 - 10): </label>
+                <input type="number" id="monsterSpeed" name="monsterSpeed" required min="1" max="10" @keypress="isNumber($event)" v-model.number.lazy="monster.speed" />
+                <span class="validity"></span>
+              </div>
+              <br />
+              <div>
+                <label for="monsterAttack">Attack Power (25 - 75): </label>
+                <input type="number" id="monsterAttack" name="monsterAttack" required min="25" max="75" @keypress="isNumber($event)" v-model.number="monster.attack" />
+                <span class="validity"></span>
+              </div>
+              <br />
+              <div>
+                <label for="monsterWeaponDamageMin">Min Damage (1 - 6): </label>
+                <input type="number" id="monsterWeaponDamageMin" name="monsterWeaponDamageMin" required min="1" max="6" @keypress="isNumber($event)" v-model.number="monster.damageMin" />
+                <span class="validity"></span>
+              </div>
+              <br />
+              <div>
+                <label for="monsterWeaponDamageMax">Max Damage (7 - 15): </label>
+                <input type="number" id="monsterWeaponDamageMax" name="monsterWeaponDamageMax" required min="7" max="15" @keypress="isNumber($event)" v-model.number="monster.damageMax" />
+                <span class="validity"></span>
+              </div>
+              <br />
+              <div>
+                <label for="monsterDefense">Defense (1 - 50): </label>
+                <input type="number" id="monsterDefense" name="monsterDefense" required min="1" max="50" @keypress="isNumber($event)" v-model.number="monster.defense" />
+                <span class="validity"></span>
+              </div>
+              <br />
+              <div>
+                <label for="monsterMagic">Use Magic: </label>
+                <input type="checkbox" id="monsterMagic" name="monsterMagic" v-model.number="monster.hasMagic" />
+              </div>
+              <br />
+              <div v-show="monster.hasMagic === true">
+                <label for="monsterMana">Mana Points (1 - 100): </label>
+                <input type="number" id="monsterMana" name="monsterMana" :required="monster.hasMagic === true" min="1" max="100" @keypress="isNumber($event)" v-model.number="monster.magic.mana" />
+                <span class="validity"></span>
+                <br />
+              </div>
+              <div v-show="monster.hasMagic === true">
+                <label for="monsterFireMagic"
+                  ><span class="questionmarks"><img src="img/question-mark-in-a-circle.png" /></span>
+                  Fireball:
+                </label>
+                <input type="checkbox" id="monsterFireMagic" name="monsterSpell" :checked="monsterHasMagicCheck" v-model.number="monster.magic.fireBallMagic" />
+                <br />
+              </div>
+              <div v-show="monster.hasMagic === true">
+                <label for="monsterLightningMagic"
+                  ><span class="questionmarks"><img src="img/question-mark-in-a-circle.png" /></span>
+                  Lightning Bolt:
+                </label>
+                <input type="checkbox" id="monsterLightningMagic" name="monsterSpell" :checked="monsterHasMagicCheck" v-model.number="monster.magic.lightningBoltMagic" />
+                <br />
+              </div>
+              <div v-show="monster.hasMagic === true">
+                <label for="monsterHealingMagic"
+                  ><span class="questionmarks"><img src="img/question-mark-in-a-circle.png" /></span>
+                  Healing:
+                </label>
+                <input type="checkbox" id="monsterHealingMagic" name="monsterSpell" :checked="monsterHasMagicCheck" v-model.number="monster.magic.healingMagic" />
+                <br />
+              </div>
+            </fieldset>
+            <fieldset>
+              <legend>Player's Details</legend>
+              <!-- ---------------- Player's Details ----------------- -->
+              <div>
+                <label for="playerName">Player Name : </label>
+                <input type="text" id="playerName" name="playerName" required @keyup="checkNamesConflict" @keypress="isString($event)" v-model.trim="player.name" />
+                <span class="validity"></span>
+              </div>
+              <br />
+              <div>
+                <label for="playerHealth">Health Points (1 - 100): </label>
+                <input type="number" id="playerHealth" name="playerHealth" required min="1" max="100" @keypress="isNumber($event)" v-model.number="player.health" />
+                <span class="validity"></span>
+              </div>
+              <br />
+              <div>
+                <label for="playerSpeed">Speed (1 - 10): </label>
+                <input type="number" id="playerSpeed" name="playerSpeed" required min="1" max="10" @keypress="isNumber($event)" v-model.number.lazy="player.speed" />
+                <span class="validity"></span>
+              </div>
+              <br />
+              <div>
+                <label for="playerAttack">Attack Power (25 - 75): </label>
+                <input type="number" id="playerAttack" name="playerAttack" required min="25" max="75" @keypress="isNumber($event)" v-model.number="player.attack" />
+                <span class="validity"></span>
+              </div>
+              <br />
+              <div>
+                <label for="playerWeaponDamageMin">Min Damage (1 - 6): </label>
+                <input type="number" id="playerWeaponDamageMin" name="playerWeaponDamageMin" required min="1" max="6" @keypress="isNumber($event)" v-model.number="player.damageMin" />
+                <span class="validity"></span>
+              </div>
+              <br />
+              <div>
+                <label for="playerWeaponDamageMax">Max Damage (7 - 15): </label>
+                <input type="number" id="playerWeaponDamageMax" name="playerWeaponDamageMax" required min="7" max="15" @keypress="isNumber($event)" v-model.number="player.damageMax" />
+                <span class="validity"></span>
+              </div>
+              <br />
+              <div>
+                <label for="playerDefense">Defense (1 - 50): </label>
+                <input type="number" id="playerDefense" name="playerDefense" required min="1" max="50" @keypress="isNumber($event)" v-model.number="player.defense" />
+                <span class="validity"></span>
+              </div>
+              <br />
+              <div>
+                <label for="playerMagic">Use Magic: </label>
+                <input type="checkbox" id="playerMagic" name="playerMagic" v-model.number="player.hasMagic" />
+              </div>
+              <br />
+              <div v-show="player.hasMagic === true">
+                <label for="playerMana">Mana Points (1 - 100): </label>
+                <input type="number" id="playerMana" name="playerMana" :required="player.hasMagic === true" min="1" max="100" @keypress="isNumber($event)" v-model.number="player.magic.mana" />
+                <span class="validity"></span>
+                <br />
+              </div>
+              <div v-show="player.hasMagic === true">
+                <label for="playerFireMagic"
+                  ><span class="questionmarks"><img src="img/question-mark-in-a-circle.png" /></span>
+                  Fireball:
+                </label>
+                <input type="checkbox" id="playerFireMagic" name="playerSpell" :checked="playerHasMagicCheck" v-model.number="player.magic.fireBallMagic" />
+                <br />
+              </div>
+              <div v-show="player.hasMagic === true">
+                <label for="playerLightningMagic"
+                  ><span class="questionmarks"><img src="img/question-mark-in-a-circle.png" /></span>
+                  Lightning Bolt:
+                </label>
+                <input type="checkbox" id="playerLightningMagic" name="playerSpell" :checked="playerHasMagicCheck" v-model.number="player.magic.lightningBoltMagic" />
+                <br />
+              </div>
+              <div v-show="player.hasMagic === true">
+                <label for="playerHealingMagic"
+                  ><span class="questionmarks"><img src="img/question-mark-in-a-circle.png" /></span>
+                  Healing:
+                </label>
+                <input type="checkbox" id="playerHealingMagic" name="playerSpell" :checked="playerHasMagicCheck" v-model.number="player.magic.healingMagic" />
+                <br />
+              </div>
+            </fieldset>
+            <p class="errorNames" v-if="sameName === true">Names cannot be the same!</p>
+            <p class="errorNames" v-if="spellMissing === true">At least one spell must be selected.</p>
+            <button type="button" @click="saveDetails">Save</button>
+            <button type="button" @click="loadDetails">Load</button>
+            <button type="submit">Submit</button>
+          </form>
+        </section>
+      </div>
+      <div v-show="detailsSaved === true">
+        <section id="monster" class="container">
+          <h2>Monster ({{monster.name}})</h2>
+          <h4>Health</h4>
+          <div class="healthbar">
+            <div class="healthbar__value"></div>
+          </div>
+          <h4>Mana</h4>
+          <div class="manabar">
+            <div class="manabar__value"></div>
+          </div>
+        </section>
+        <section id="player" class="container">
+          <h2>Player ({{player.name}})</h2>
+          <h4>Health</h4>
+          <div class="healthbar">
+            <div class="healthbar__value"></div>
+          </div>
+          <h4>Mana</h4>
+          <div class="manabar">
+            <div class="manabar__value"></div>
+          </div>
+        </section>
+        <section id="controls">
+          <button>ATTACK</button>
+          <br>
+          <button>FIREBALL</button>
+          <button>LIGHTNING BOLT</button>
+          <button>HEALING</button>
+          <button>SURRENDER</button>
+        </section>
+        <section id="log" class="container">
+          <h2>Battle Log</h2>
+          <ul></ul>
+        </section>
+      </div>
+    </div>
+  </body>
+</html>
