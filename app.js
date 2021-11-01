@@ -14,7 +14,7 @@ function checkValidation(inputObject){
         heal = inputObject.magic.healingMagic;
 
     if( selectedname!=='' 
-        && (health>=1 && health <=100) && (speed>=1 && speed <=10) && (attack>=25 && attack<=75)  && (minDamage>=1 && minDamage<=6) && (maxDamage>=7 && maxDamage<=15) && (defense>=1 && defense<=50)){
+        && (health>=1 && health <=100) && (speed>=1 && speed <=10) && (attack>=25 && attack<=50)  && (minDamage>=1 && minDamage<=6) && (maxDamage>=7 && maxDamage<=15) && (defense>=1 && defense<=50)){
             if(hasMagic === true){
                 const spells = [fire, lightning, heal];
                 const isLearned = (learned) => learned === true;
@@ -110,7 +110,9 @@ function spellSelected(checkboxesName){
     };
 }
 
+// -------------------------
 // ----- VUE APP CODE ------
+// -------------------------
 const app = Vue.createApp({
     data(){
         return {
@@ -147,6 +149,10 @@ const app = Vue.createApp({
                     healingMagic: false
                 },
             },
+            monsterOriginalHealth: '',
+            monsterOriginalMana: '',
+            playerOriginalHealth: '',
+            playerOriginalMana: '',
             spellMissingMonster: false,
             spellMissingPlayer: false,
             detailsSaved: false,
@@ -154,13 +160,37 @@ const app = Vue.createApp({
             validForm: false,
             monsterErrorMessage : '',
             playerErrorMessage : '',
-            savedDetailsEarlier : this.savedEarlier()
+            savedDetailsEarlier : this.savedEarlier(),
+            showDices : true,
+            showDiceOne : true,
+            showDiceTwo : true,
+            showDiceThree : false,
+            showDiceFour : false,
+            roundCounter : 0,
+            startRound : false,
+            useSpellLightning : true,
+            useSpellFire : true,
+            useSpellhealing : true,
+            surrend : true
+            
         }
     },
     computed:{
         savedBefore(){
             // console.log("savedBefore called");
             return !this.savedDetailsEarlier;
+        },
+        monsterCurrentHealth(){
+            return this.monster.health + "%";
+        },
+        monsterCurrentMana(){
+            return this.monster.magic.mana + "%";
+        },
+        playerCurrentHealth(){
+            return this.player.health + "%";
+        },
+        playerCurrentMana(){
+            return this.player.magic.mana + "%";
         }
     },
     watch:{
@@ -280,11 +310,66 @@ const app = Vue.createApp({
             const validOrNot = this.validateDetails();
             // console.log("Validation is " + validOrNot);
             if(validOrNot){
+                this.monsterOriginalHealth = this.monster.health;
+                this.monsterOriginalMana = this.monster.magic.mana;
+                this.playerOriginalHealth = this.player.health;
+                this.playerOriginalMana = this.player.magic.mana;
                 this.monster.name = capitalizeName(this.monster.name);
                 this.player.name = capitalizeName(this.player.name);
                 this.detailsSaved = true;
+                this.roundCounter++;
             }
+        },
+        rollDice() {
+            console.log("diceroll called")
+            const dice = [...document.querySelectorAll(".die-list")];
+            const diceResults = [];
+            dice.forEach(die => {
+                this.toggleClasses(die);
+                // dataset : https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
+                die.dataset.roll = this.getRandomNumber(1, 6);
+                diceResults.push(die.dataset.roll);
+
+            });
+            // this.roundCounter++;
+            console.log(diceResults);
+        },
+        
+        toggleClasses(die) {
+            die.classList.toggle("odd-roll");
+            die.classList.toggle("even-roll");
+        },
+        
+        getRandomNumber(min, max) {
+            min = Math.ceil(min);
+            max = Math.floor(max);
+            return Math.floor(Math.random() * (max - min + 1)) + min;
         }
     }
 });
 app.mount('#game');
+
+/* 
+    Steps of the fight...
+
+    (d6 = dice with 6 side)
+
+    1 - in every round increase the round counter
+    
+    2 - figure out who is faster in the current round
+        -> for this we need 2*d6 roll and add that to the monster/player speed
+        -> example: - player speed is 5 and 2*d6 will be 2*3=6, so his speed is 5+6=11 in this round
+                    - if the monster speed is 7 but he rolling 3 with 2*d6 (1+2) then his speed will be 7+3=10, so in this round the player will the faster
+    
+    3 - at this point the player/monster have to decide that he will attack the enemy with weapon, or he will use a magic spell (if he has any -> must check it) 
+
+    3 - to calculate the attack power first roll with 4*d6+1 and add that to the previously selected attack power
+        -> if the monster/player attack power + the result of the 4*d6+1 is higher than the enemy defense, then the attack was successfully, otherwise failed
+        -> example: - the player attack power is 32 and the 4*d6+1 result is 15 (2+4+6+2+1), so his attack power overall is 47 (32+15)
+                    - if the monster defense is less than 47, then he punched his opponent's defense
+
+    4 - to calculate the damage in the case of a successful attack use a formula with maximum and minimum damage
+        Formula: Math.floor(Math.random(maxdamage - mindamage)) + mindamage
+                    
+                    
+*/

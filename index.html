@@ -39,8 +39,8 @@
               </div>
               <br />
               <div>
-                <label for="monsterAttack">Attack Power (25 - 75): </label>
-                <input type="number" id="monsterAttack" name="monsterAttack" required min="25" max="75" onKeyPress="return isNumber(event);" v-model.number="monster.attack" />
+                <label for="monsterAttack">Attack Power (25 - 50): </label>
+                <input type="number" id="monsterAttack" name="monsterAttack" required min="25" max="50" onKeyPress="return isNumber(event);" v-model.number="monster.attack" />
                 <span class="validity"></span>
               </div>
               <br />
@@ -124,8 +124,8 @@
               </div>
               <br />
               <div>
-                <label for="playerAttack">Attack Power (25 - 75): </label>
-                <input type="number" id="playerAttack" name="playerAttack" required min="25" max="75" onKeyPress="return isNumber(event);" v-model.number="player.attack" />
+                <label for="playerAttack">Attack Power (25 - 50): </label>
+                <input type="number" id="playerAttack" name="playerAttack" required min="25" max="50" onKeyPress="return isNumber(event);" v-model.number="player.attack" />
                 <span class="validity"></span>
               </div>
               <br />
@@ -197,37 +197,190 @@
       <div v-show="detailsSaved === true">
         <section id="monster" class="container">
           <h2>{{monster.name}} <span class="mOrp">(Monster)</span></h2>
-          <h4>Health</h4>
+          <h4>Health ( {{monster.health}} / 100 )</h4>
           <div class="healthbar">
-            <div class="healthbar__value"></div>
+            <div class="healthbar__value" :style="{width: monsterCurrentHealth}">
+            </div>
           </div>
-          <h4>Mana</h4>
+          <h4>Mana ( {{monster.magic.mana}} / 100 )</h4>
           <div class="manabar">
-            <div class="manabar__value"></div>
+            <div class="manabar__value" :style="{width: monsterCurrentMana}"></div>
           </div>
         </section>
         <section id="player" class="container">
           <h2>{{player.name}} <span class="mOrp">(Player)</span></h2>
-          <h4>Health</h4>
+          <h4>Health ( {{player.health}} / 100 )</h4>
           <div class="healthbar">
-            <div class="healthbar__value"></div>
+            <div class="healthbar__value" :style="{width: playerCurrentHealth}">
+              
+            </div>
           </div>
-          <h4>Mana</h4>
+          <h4>Mana ( {{player.magic.mana}} / 100 )</h4>
           <div class="manabar">
-            <div class="manabar__value"></div>
+            <div class="manabar__value" :style="{width: playerCurrentMana}">
+              
+            </div>
           </div>
         </section>
-        <section id="controls">
-          <button>ATTACK</button>
-          <br />
-          <button>FIREBALL</button>
-          <button>LIGHTNING BOLT</button>
-          <button>HEALING</button>
-          <button>SURRENDER</button>
+        <section id="dices" class="container">
+          <h2 id="roundCounter">ROUND {{roundCounter}}</h2>
+          <br>
+          <div v-if="showDices" class="dice">
+            <ol v-if="showDiceOne" class="die-list even-roll" data-roll="1" id="die-1">
+              <li class="die-item" data-side="1">
+                <span class="dot"></span>
+              </li>
+              <li class="die-item" data-side="2">
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </li>
+              <li class="die-item" data-side="3">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </li>
+              <li class="die-item" data-side="4">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </li>
+              <li class="die-item" data-side="5">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </li>
+              <li class="die-item" data-side="6">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </li>
+            </ol>
+            <ol v-if="showDiceTwo" class="die-list odd-roll" data-roll="1" id="die-2">
+              <li class="die-item" data-side="1">
+                <span class="dot"></span>
+              </li>
+              <li class="die-item" data-side="2">
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </li>
+              <li class="die-item" data-side="3">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </li>
+              <li class="die-item" data-side="4">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </li>
+              <li class="die-item" data-side="5">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </li>
+              <li class="die-item" data-side="6">
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+              </li>
+            </ol>
+            <ol v-if="showDiceThree" class="die-list even-roll" data-roll="1" id="die-3">
+                <li class="die-item" data-side="1">
+                  <span class="dot"></span>
+                </li>
+                <li class="die-item" data-side="2">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </li>
+                <li class="die-item" data-side="3">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </li>
+                <li class="die-item" data-side="4">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </li>
+                <li class="die-item" data-side="5">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </li>
+                <li class="die-item" data-side="6">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </li>
+            </ol>
+            <ol v-if="showDiceFour" class="die-list odd-roll" data-roll="1" id="die-4">
+                <li class="die-item" data-side="1">
+                  <span class="dot"></span>
+                </li>
+                <li class="die-item" data-side="2">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </li>
+                <li class="die-item" data-side="3">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </li>
+                <li class="die-item" data-side="4">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </li>
+                <li class="die-item" data-side="5">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </li>
+                <li class="die-item" data-side="6">
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                  <span class="dot"></span>
+                </li>
+              </ol>
+          </div>
         </section>
-        <section id="log" class="container">
-          <h2>Battle Log</h2>
-          <ul></ul>
+        <section id="buttonsAndLog" class="container">
+          <section  id="controls">
+            <button :disabled="startRound" @click="rollDice">AGILITY</button>
+            <br />
+            <button :disabled="useSpellLightning">FIREBALL</button>
+            <button :disabled="useSpellFire">LIGHTNING BOLT</button>
+            <button :disabled="useSpellhealing">HEALING</button>
+            <button :disabled="surrend">SURRENDER</button>
+          </section>
+          <section id="log">
+            <h2>Battle Log</h2>
+            <ul></ul>
+          </section>
         </section>
       </div>
     </div>
