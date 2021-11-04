@@ -113,9 +113,22 @@ function spellSelected(checkboxesName){
 // -------------------------
 // ----- VUE APP CODE ------
 // -------------------------
-const app = Vue.createApp({
+const {ref, createApp} = Vue.createApp({
     data(){
         return {
+
+            classNames: {
+                evenRoll: true,
+                oddRoll: false
+            },
+            errors:{
+                spellMissingMonster: false,
+                spellMissingPlayer: false,
+                sameName: false,
+                validForm: false,
+                monsterErrorMessage : '',
+                playerErrorMessage : '',
+            },
             monster: {
                 name: '',
                 health: '',
@@ -130,8 +143,7 @@ const app = Vue.createApp({
                     fireBallMagic: false,
                     lightningBoltMagic: false,
                     healingMagic: false
-                },
-                
+                }
             },
             player: {
                 name: '',
@@ -147,32 +159,32 @@ const app = Vue.createApp({
                     fireBallMagic: false,
                     lightningBoltMagic: false,
                     healingMagic: false
-                },
+                }
             },
+            dices:{
+                dicesNumber: 4,
+                dieSides: 6,
+                dieSpots: 0,
+                dieVisible: [{number: 1, active:true},{number: 2, active:true},{number: 3, active:false},{number: 4, active:false}],
+            },
+
             monsterOriginalHealth: '',
             monsterOriginalMana: '',
             playerOriginalHealth: '',
             playerOriginalMana: '',
-            spellMissingMonster: false,
-            spellMissingPlayer: false,
+
             detailsSaved: false,
-            sameName: false,
-            validForm: false,
-            monsterErrorMessage : '',
-            playerErrorMessage : '',
             savedDetailsEarlier : this.savedEarlier(),
-            showDices : true,
-            showDiceOne : true,
-            showDiceTwo : true,
-            showDiceThree : false,
-            showDiceFour : false,
-            roundCounter : 0,
-            startRound : false,
-            useSpellLightning : true,
-            useSpellFire : true,
-            useSpellhealing : true,
-            surrend : true
+            roundCounter : 1,
+
             
+            startRound : false,
+            attackAction: true,
+            fireBallAtcion: true,
+            lightningBoltAtcion: true,
+            healingAtcion: true,
+
+            surrend : true
         }
     },
     computed:{
@@ -191,27 +203,31 @@ const app = Vue.createApp({
         },
         playerCurrentMana(){
             return this.player.magic.mana + "%";
-        }
+        },
+        visibleDices(){
+            return this.dices.dieVisible.filter(function(u){
+                return u.active === true;
+            })
+        },  
     },
     watch:{
-    
+        
+        
     },
     methods: {
-        
-        // compare the monster's and player's name
         checkNamesConflict(){
             // if none of name field is empty
             if(this.monster.name !== '' && this.player.name !== ''){
                 // same name for Monster and Player
                 if(this.monster.name === this.player.name){
-                    this.validForm = false;
-                    this.sameName = true;
+                    this.errors.validForm = false;
+                    this.errors.sameName = true;
                 }else{
-                    this.validForm = true;
-                    this.sameName = false;
+                    this.errors.validForm = true;
+                    this.errors.sameName = false;
                 }
             }else{
-                this.sameName = false;
+                this.errors.sameName = false;
             }
         },
         clearSpells(input){
@@ -221,7 +237,7 @@ const app = Vue.createApp({
                     this.monster.magic.fireBallMagic = false;
                     this.monster.magic.lightningBoltMagic = false;
                     this.monster.magic.healingMagic = false;
-                    this.spellMissingMonster = false;
+                    this.errors.spellMissingMonster = false;
                 }
             }else{
                 if(this.player.hasMagic === false){
@@ -229,7 +245,7 @@ const app = Vue.createApp({
                     this.player.magic.fireBallMagic = false;
                     this.player.magic.lightningBoltMagic = false;
                     this.player.magic.healingMagic = false;
-                    this.spellMissingPlayer = false;
+                    this.errors.spellMissingPlayer = false;
                 }
             }
         },
@@ -244,10 +260,10 @@ const app = Vue.createApp({
             const validationForSave = this.validateDetails();
             if(validationForSave){
                 console.log("Save the details ...");
-                this.monsterErrorMessage = '';
-                this.playerErrorMessage = '';
-                this.spellMissingMonster = false;
-                this.spellMissingPlayer = false;
+                this.errors.monsterErrorMessage = '';
+                this.errors.playerErrorMessage = '';
+                this.errors.spellMissingMonster = false;
+                this.errors.spellMissingPlayer = false;
                 localStorage.setItem('monsterDetails', JSON.stringify(this.monster));
                 localStorage.setItem('playerDetails', JSON.stringify(this.player));
                 this.savedDetailsEarlier = true;
@@ -269,35 +285,35 @@ const app = Vue.createApp({
             let monsterCheck = checkValidation(this.monster);
             let playerCheck = checkValidation(this.player);
             this.checkNamesConflict();
-            if( monsterCheck === "fullValid" && playerCheck === "fullValid" && this.validForm){
+            if( monsterCheck === "fullValid" && playerCheck === "fullValid" && this.errors.validForm){
                 return true;
             }else{
                 switch(monsterCheck){
                     case 'missingSpellSelection':
-                        this.spellMissingMonster = true;
+                        this.errors.spellMissingMonster = true;
                         break;
                     case 'manaMissing':
-                        this.monsterErrorMessage = "Mana is necessary for spells!"; 
+                        this.errors.monsterErrorMessage = "Mana is necessary for spells!"; 
                         break;
                     case 'wrongInput': 
-                        this.monsterErrorMessage = "One or more details are invalid!"; 
+                        this.errors.monsterErrorMessage = "One or more details are invalid!"; 
                         break;
                     default:
-                        this.monsterErrorMessage = '';
+                        this.errors.monsterErrorMessage = '';
                         break;
                 }
                 switch(playerCheck){
                     case 'missingSpellSelection':
-                        this.spellMissingPlayer = true;
+                        this.errors.spellMissingPlayer = true;
                         break;
                     case 'manaMissing':
-                        this.playerErrorMessage = "Mana is necessary for spells!"; 
+                        this.errors.playerErrorMessage = "Mana is necessary for spells!"; 
                         break;
                     case 'wrongInput': 
-                        this.playerErrorMessage = "One or more details are invalid!"; 
+                        this.errors.playerErrorMessage = "One or more details are invalid!"; 
                         break;
                     default:
-                        this.playerErrorMessage = '';
+                        this.errors.playerErrorMessage = '';
                         break;
                 }
 
@@ -305,8 +321,8 @@ const app = Vue.createApp({
             }
         },
         submitDetails(){
-            this.monsterErrorMessage = '';
-            this.playerErrorMessage = '';
+            this.errors.monsterErrorMessage = '';
+            this.errors.playerErrorMessage = '';
             const validOrNot = this.validateDetails();
             // console.log("Validation is " + validOrNot);
             if(validOrNot){
@@ -317,37 +333,77 @@ const app = Vue.createApp({
                 this.monster.name = capitalizeName(this.monster.name);
                 this.player.name = capitalizeName(this.player.name);
                 this.detailsSaved = true;
-                this.roundCounter++;
             }
         },
-        rollDice() {
-            console.log("diceroll called")
-            const dice = [...document.querySelectorAll(".die-list")];
-            const diceResults = [];
-            dice.forEach(die => {
-                this.toggleClasses(die);
-                // dataset : https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
-                die.dataset.roll = this.getRandomNumber(1, 6);
-                diceResults.push(die.dataset.roll);
+        rollDice(rollFor) {
+            console.log("diceroll called for " + rollFor)
 
-            });
-            // this.roundCounter++;
-            console.log(diceResults);
+            switch(rollFor){
+                case 'agility':
+                    console.log("agility rolled");
+                    this.rolling();
+                    this.dices.dieVisible[2].active = false;
+                    this.dices.dieVisible[3].active = false;
+                    this.startRound = true;
+                    this.attackAction = false;
+                    this.fireBallAtcion = false;
+                    this.lightningBoltAtcion = false;
+                    this.healingAtcion = false;
+                    break;
+                case 'attack':
+                    console.log("attack rolled");
+                    this.rolling();
+                    this.startRound = false;
+                    this.attackAction = true;
+                    this.fireBallAtcion = true;
+                    this.lightningBoltAtcion = true;
+                    this.healingAtcion = true;
+                    break;
+            }
         },
-        
-        toggleClasses(die) {
-            die.classList.toggle("odd-roll");
-            die.classList.toggle("even-roll");
+        rolling(){
+            //using setTimeout() to give small amount of time for Vue to refresh DOM from computed property visibleDices()
+            setTimeout(() => {
+                //now used querySelectorAll but later it must be changed to $refs and made all the dice to component
+                const dice = [...document.querySelectorAll(".die-list")];
+                const diceResults = [];
+
+                //toggle die's classes
+                this.classNames.evenRoll = !this.classNames.evenRoll;
+                this.classNames.oddRoll = !this.classNames.oddRoll;
+
+                dice.forEach(die => {
+                    // this.toggleClasses(die);
+
+
+
+                    // dataset : https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
+                    die.dataset.roll = this.getRandomNumber(1, 6);
+                    diceResults.push(die.dataset.roll);
+
+                });
+                // this.roundCounter++;
+                console.log(diceResults);
+            }, 10);
+
+            for(let i=0; i<this.dices.dieVisible.length; i++){
+                this.dices.dieVisible[i].active = true;
+            }
+
         },
         
         getRandomNumber(min, max) {
             min = Math.ceil(min);
             max = Math.floor(max);
             return Math.floor(Math.random() * (max - min + 1)) + min;
+        },
+        returnCalcStr(arg1, arg2){
+            const result = arg1 + arg2;
+            // console.log(result)
+            return result;
         }
     }
-});
-app.mount('#game');
+}).mount('#game');
 
 /* 
     Steps of the fight...

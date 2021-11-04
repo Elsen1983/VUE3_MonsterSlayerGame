@@ -17,9 +17,9 @@
       <div v-show="detailsSaved === false">
         <section id="setup" class="container">
           <form @submit.prevent="submitDetails">
+            <!-- ---------- Monster's Details ----------- -->
             <fieldset>
               <legend>Monster's Details</legend>
-              <!-- ---------- Monster's Details ----------- -->
               <div>
                 <label for="monsterName">Monster Name : </label>
                 <input type="text" id="monsterName" name="monsterName" required @keyup="checkNamesConflict" onKeyPress="return isString(event);" v-model.trim="monster.name" />
@@ -64,7 +64,7 @@
               <br />
               <div>
                 <label for="monsterMagic">Use Magic: </label>
-                <input type="checkbox" id="monsterMagic" name="monsterMagic" v-model.number="monster.hasMagic" @change="clearSpells('monster')"/>
+                <input type="checkbox" id="monsterMagic" name="monsterMagic" v-model.number="monster.hasMagic" @change="clearSpells('monster')" />
               </div>
               <br />
               <div v-show="monster.hasMagic === true">
@@ -97,14 +97,14 @@
                 <input type="checkbox" id="monsterHealingMagic" name="monsterSpell" :checked="monster.magic.healingMagic" v-model="monster.magic.healingMagic" />
                 <br />
               </div>
-              <p class="errors" v-if="spellMissingMonster === true">Select at least one spell!</p>
-              <div v-if="monsterErrorMessage !== ''" class="errorsContainer">
-                <p class="errors" id="monsterErrors">{{monsterErrorMessage}}</p>
+              <p class="errors" v-if="errors.spellMissingMonster === true">Select at least one spell!</p>
+              <div v-if="errors.monsterErrorMessage !== ''" class="errorsContainer">
+                <p class="errors" id="monsterErrors">{{errors.monsterErrorMessage}}</p>
               </div>
             </fieldset>
+            <!-- ---------------- Player's Details ----------------- -->
             <fieldset>
               <legend>Player's Details</legend>
-              <!-- ---------------- Player's Details ----------------- -->
               <div>
                 <label for="playerName">Player Name : </label>
                 <input type="text" id="playerName" name="playerName" required @keyup="checkNamesConflict" onKeyPress="return isString(event);" v-model.trim="player.name" />
@@ -149,7 +149,7 @@
               <br />
               <div>
                 <label for="playerMagic">Use Magic: </label>
-                <input type="checkbox" id="playerMagic" name="playerMagic" v-model.number="player.hasMagic" @change="clearSpells('player')"/>
+                <input type="checkbox" id="playerMagic" name="playerMagic" v-model.number="player.hasMagic" @change="clearSpells('player')" />
               </div>
               <br />
               <div v-show="player.hasMagic === true">
@@ -182,12 +182,12 @@
                 <input type="checkbox" id="playerHealingMagic" name="playerSpell" :checked="player.magic.healingMagic" v-model="player.magic.healingMagic" />
                 <br />
               </div>
-              <p class="errors" v-if="spellMissingPlayer === true">Select at least one spell!</p>
-              <div v-if="playerErrorMessage !== ''" class="errorsContainer">
-                <p class="errors" id="playerErrors">{{playerErrorMessage}}</p>
+              <p class="errors" v-if="errors.spellMissingPlayer === true">Select at least one spell!</p>
+              <div v-if="errors.playerErrorMessage !== ''" class="errorsContainer">
+                <p class="errors" id="playerErrors">{{errors.playerErrorMessage}}</p>
               </div>
             </fieldset>
-            <p class="errors" v-if="sameName === true">Names cannot be the same!</p>
+            <p class="errors" v-if="errors.sameName === true">Names cannot be the same!</p>
             <button type="button" @click="saveDetails">Save</button>
             <button type="button" :disabled="!savedDetailsEarlier" @click="loadDetails">Load</button>
             <button type="submit">Submit</button>
@@ -199,8 +199,7 @@
           <h2>{{monster.name}} <span class="mOrp">(Monster)</span></h2>
           <h4>Health ( {{monster.health}} / 100 )</h4>
           <div class="healthbar">
-            <div class="healthbar__value" :style="{width: monsterCurrentHealth}">
-            </div>
+            <div class="healthbar__value" :style="{width: monsterCurrentHealth}"></div>
           </div>
           <h4>Mana ( {{monster.magic.mana}} / 100 )</h4>
           <div class="manabar">
@@ -211,176 +210,42 @@
           <h2>{{player.name}} <span class="mOrp">(Player)</span></h2>
           <h4>Health ( {{player.health}} / 100 )</h4>
           <div class="healthbar">
-            <div class="healthbar__value" :style="{width: playerCurrentHealth}">
-              
-            </div>
+            <div class="healthbar__value" :style="{width: playerCurrentHealth}"></div>
           </div>
           <h4>Mana ( {{player.magic.mana}} / 100 )</h4>
           <div class="manabar">
-            <div class="manabar__value" :style="{width: playerCurrentMana}">
-              
-            </div>
+            <div class="manabar__value" :style="{width: playerCurrentMana}"></div>
           </div>
         </section>
-        <section id="dices" class="container">
+        <section class="container">
           <h2 id="roundCounter">ROUND {{roundCounter}}</h2>
-          <br>
-          <div v-if="showDices" class="dice">
-            <ol v-if="showDiceOne" class="die-list even-roll" data-roll="1" id="die-1">
-              <li class="die-item" data-side="1">
-                <span class="dot"></span>
-              </li>
-              <li class="die-item" data-side="2">
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </li>
-              <li class="die-item" data-side="3">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </li>
-              <li class="die-item" data-side="4">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </li>
-              <li class="die-item" data-side="5">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </li>
-              <li class="die-item" data-side="6">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </li>
-            </ol>
-            <ol v-if="showDiceTwo" class="die-list odd-roll" data-roll="1" id="die-2">
-              <li class="die-item" data-side="1">
-                <span class="dot"></span>
-              </li>
-              <li class="die-item" data-side="2">
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </li>
-              <li class="die-item" data-side="3">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </li>
-              <li class="die-item" data-side="4">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </li>
-              <li class="die-item" data-side="5">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </li>
-              <li class="die-item" data-side="6">
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
-              </li>
-            </ol>
-            <ol v-if="showDiceThree" class="die-list even-roll" data-roll="1" id="die-3">
-                <li class="die-item" data-side="1">
-                  <span class="dot"></span>
-                </li>
-                <li class="die-item" data-side="2">
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                </li>
-                <li class="die-item" data-side="3">
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                </li>
-                <li class="die-item" data-side="4">
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                </li>
-                <li class="die-item" data-side="5">
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                </li>
-                <li class="die-item" data-side="6">
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                </li>
-            </ol>
-            <ol v-if="showDiceFour" class="die-list odd-roll" data-roll="1" id="die-4">
-                <li class="die-item" data-side="1">
-                  <span class="dot"></span>
-                </li>
-                <li class="die-item" data-side="2">
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                </li>
-                <li class="die-item" data-side="3">
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                </li>
-                <li class="die-item" data-side="4">
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                </li>
-                <li class="die-item" data-side="5">
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                </li>
-                <li class="die-item" data-side="6">
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                  <span class="dot"></span>
-                </li>
-              </ol>
-          </div>
+          <!-- Dice(s) -->
+          <section id="dices">
+              <div v-for="i in visibleDices" :key="i" class="dice">
+                <ol :id="'die_' + i.number" class="die-list" :class="[ {'even-roll': classNames.evenRoll}, {'odd-roll': classNames.oddRoll} ]" data-roll="index">
+                  <li v-for="lindex in dices.dieSides" :key="lindex" class="die-item" :data-side="lindex">
+                    <span v-for="spindex in lindex" :key="spindex" class="dot"></span>
+                  </li>
+                </ol>
+              </div>
+          </section>
         </section>
         <section id="buttonsAndLog" class="container">
-          <section  id="controls">
-            <button :disabled="startRound" @click="rollDice">AGILITY</button>
-            <br />
-            <button :disabled="useSpellLightning">FIREBALL</button>
-            <button :disabled="useSpellFire">LIGHTNING BOLT</button>
-            <button :disabled="useSpellhealing">HEALING</button>
-            <button :disabled="surrend">SURRENDER</button>
+          <section id="controls">
+            <button :disabled="startRound" @click="rollDice('agility')">WHO START</button>
+            <button :disabled="attackAction" @click="rollDice('attack')">ATTACK</button>
+            <button :disabled="fireBallAtcion">FIREBALL</button>
+            <button :disabled="lightningBoltAtcion">LIGHTNING BOLT</button>
+            <button :disabled="healingAtcion">HEALING</button>
+            
           </section>
           <section id="log">
             <h2>Battle Log</h2>
             <ul></ul>
           </section>
+        </section>
+        <section class="container">
+          <button :disabled="surrend">SURRENDER</button>
         </section>
       </div>
     </div>
