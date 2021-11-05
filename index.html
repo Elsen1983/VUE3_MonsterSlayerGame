@@ -75,7 +75,7 @@
               </div>
               <div v-show="monster.hasMagic === true">
                 <label for="monsterFireMagic"
-                  ><span class="questionmarks"><img src="img/question-mark-in-a-circle.png" /></span>
+                  ><span class="questionMarks"><img src="img/question-mark-in-a-circle.png" /></span>
                   Fireball:
                 </label>
                 <input type="checkbox" id="monsterFireMagic" name="monsterSpell" :checked="monster.magic.fireBallMagic" v-model="monster.magic.fireBallMagic" />
@@ -83,7 +83,7 @@
               </div>
               <div v-show="monster.hasMagic === true">
                 <label for="monsterLightningMagic"
-                  ><span class="questionmarks"><img src="img/question-mark-in-a-circle.png" /></span>
+                  ><span class="questionMarks"><img src="img/question-mark-in-a-circle.png" /></span>
                   Lightning Bolt:
                 </label>
                 <input type="checkbox" id="monsterLightningMagic" name="monsterSpell" :checked="monster.magic.lightningBoltMagic" v-model="monster.magic.lightningBoltMagic" />
@@ -91,7 +91,7 @@
               </div>
               <div v-show="monster.hasMagic === true">
                 <label for="monsterHealingMagic"
-                  ><span class="questionmarks"><img src="img/question-mark-in-a-circle.png" /></span>
+                  ><span class="questionMarks"><img src="img/question-mark-in-a-circle.png" /></span>
                   Healing:
                 </label>
                 <input type="checkbox" id="monsterHealingMagic" name="monsterSpell" :checked="monster.magic.healingMagic" v-model="monster.magic.healingMagic" />
@@ -160,7 +160,7 @@
               </div>
               <div v-show="player.hasMagic === true">
                 <label for="playerFireMagic"
-                  ><span class="questionmarks"><img src="img/question-mark-in-a-circle.png" /></span>
+                  ><span class="questionMarks"><img src="img/question-mark-in-a-circle.png" /></span>
                   Fireball:
                 </label>
                 <input type="checkbox" id="playerFireMagic" name="playerSpell" :checked="player.magic.fireBallMagic" v-model="player.magic.fireBallMagic" />
@@ -168,7 +168,7 @@
               </div>
               <div v-show="player.hasMagic === true">
                 <label for="playerLightningMagic"
-                  ><span class="questionmarks"><img src="img/question-mark-in-a-circle.png" /></span>
+                  ><span class="questionMarks"><img src="img/question-mark-in-a-circle.png" /></span>
                   Lightning Bolt:
                 </label>
                 <input type="checkbox" id="playerLightningMagic" name="playerSpell" :checked="player.magic.lightningBoltMagic" v-model="player.magic.lightningBoltMagic" />
@@ -176,7 +176,7 @@
               </div>
               <div v-show="player.hasMagic === true">
                 <label for="playerHealingMagic"
-                  ><span class="questionmarks"><img src="img/question-mark-in-a-circle.png" /></span>
+                  ><span class="questionMarks"><img src="img/question-mark-in-a-circle.png" /></span>
                   Healing:
                 </label>
                 <input type="checkbox" id="playerHealingMagic" name="playerSpell" :checked="player.magic.healingMagic" v-model="player.magic.healingMagic" />
@@ -198,46 +198,45 @@
         <section id="monster" class="container">
           <h2>{{monster.name}} <span class="mOrp">(Monster)</span></h2>
           <h4>Health ( {{monster.health}} / 100 )</h4>
-          <div class="healthbar">
-            <div class="healthbar__value" :style="{width: monsterCurrentHealth}"></div>
+          <div class="healthBar">
+            <div class="healthBar__value" :style="{width: monsterCurrentHealth}"></div>
           </div>
           <h4>Mana ( {{monster.magic.mana}} / 100 )</h4>
-          <div class="manabar">
-            <div class="manabar__value" :style="{width: monsterCurrentMana}"></div>
+          <div class="manaBar">
+            <div class="manaBar__value" :style="{width: monsterCurrentMana}"></div>
           </div>
         </section>
         <section id="player" class="container">
           <h2>{{player.name}} <span class="mOrp">(Player)</span></h2>
           <h4>Health ( {{player.health}} / 100 )</h4>
-          <div class="healthbar">
-            <div class="healthbar__value" :style="{width: playerCurrentHealth}"></div>
+          <div class="healthBar">
+            <div class="healthBar__value" :style="{width: playerCurrentHealth}"></div>
           </div>
           <h4>Mana ( {{player.magic.mana}} / 100 )</h4>
-          <div class="manabar">
-            <div class="manabar__value" :style="{width: playerCurrentMana}"></div>
+          <div class="manaBar">
+            <div class="manaBar__value" :style="{width: playerCurrentMana}"></div>
           </div>
         </section>
         <section class="container">
           <h2 id="roundCounter">ROUND {{roundCounter}}</h2>
           <!-- Dice(s) -->
           <section id="dices">
-              <div v-for="i in visibleDices" :key="i" class="dice">
-                <ol :id="'die_' + i.number" class="die-list" :class="[ {'even-roll': classNames.evenRoll}, {'odd-roll': classNames.oddRoll} ]" data-roll="index">
-                  <li v-for="lindex in dices.dieSides" :key="lindex" class="die-item" :data-side="lindex">
-                    <span v-for="spindex in lindex" :key="spindex" class="dot"></span>
-                  </li>
-                </ol>
-              </div>
+            <div v-for="i in visibleDices" :key="i" class="dice">
+              <ol :id="'die_' + i.number" class="die-list" :class="[ {'even-roll': classNames.evenRoll}, {'odd-roll': classNames.oddRoll} ]" data-roll="index">
+                <li v-for="l_index in dices.dieSides" :key="l_index" class="die-item" :data-side="l_index">
+                  <span v-for="sp_index in l_index" :key="sp_index" class="dot"></span>
+                </li>
+              </ol>
+            </div>
           </section>
         </section>
         <section id="buttonsAndLog" class="container">
           <section id="controls">
             <button :disabled="startRound" @click="rollDice('agility')">WHO START</button>
             <button :disabled="attackAction" @click="rollDice('attack')">ATTACK</button>
-            <button :disabled="fireBallAtcion">FIREBALL</button>
-            <button :disabled="lightningBoltAtcion">LIGHTNING BOLT</button>
-            <button :disabled="healingAtcion">HEALING</button>
-            
+            <button :disabled="fireBallAction">FIREBALL</button>
+            <button :disabled="lightningBoltAction">LIGHTNING BOLT</button>
+            <button :disabled="healingAction">HEALING</button>
           </section>
           <section id="log">
             <h2>Battle Log</h2>
@@ -245,7 +244,7 @@
           </section>
         </section>
         <section class="container">
-          <button :disabled="surrend">SURRENDER</button>
+          <button :disabled="er">SURRENDER</button>
         </section>
       </div>
     </div>
