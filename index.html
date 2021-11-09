@@ -232,11 +232,11 @@
         </section>
         <section id="buttonsAndLog" class="container">
           <section id="controls">
-            <button :disabled="startRound" @click="rollDice('agility')">WHO START</button>
-            <button :disabled="attackAction" @click="rollDice('attack')">ATTACK</button>
-            <button :disabled="fireBallAction">FIREBALL</button>
-            <button :disabled="lightningBoltAction">LIGHTNING BOLT</button>
-            <button :disabled="healingAction">HEALING</button>
+            <button :disabled="fightDetails.startRound" @click="startRoundRoll">WHO START</button>
+            <button :disabled="attackAction" @click="doAction('attack')">ATTACK</button>
+            <button :disabled="fireBallAction" @click="doAction('fire')">FIREBALL</button>
+            <button :disabled="lightningBoltAction" @click="doAction('lightning')">LIGHTNING BOLT</button>
+            <button :disabled="healingAction" @click="doAction('heal')">HEALING</button>
           </section>
           <section id="log">
             <h2>Battle Log</h2>
@@ -244,7 +244,7 @@
           </section>
         </section>
         <section class="container">
-          <button :disabled="er">SURRENDER</button>
+          <button :disabled="surrender">SURRENDER</button>
         </section>
       </div>
     </div>

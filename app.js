@@ -104,6 +104,8 @@ const { ref, createApp } = Vue.createApp({
                 lightningBoltMagic: false,
                 healingMagic: false,
                 },
+                originalHealth: "",
+                originalMana: "",
             },
             player: {
                 name: "",
@@ -120,6 +122,8 @@ const { ref, createApp } = Vue.createApp({
                 lightningBoltMagic: false,
                 healingMagic: false,
                 },
+                originalHealth: "",
+                originalMana: "",
             },
             dices: {
                 dicesNumber: 4,
@@ -133,22 +137,24 @@ const { ref, createApp } = Vue.createApp({
                 ],
             },
 
-            monsterOriginalHealth: "",
-            monsterOriginalMana: "",
-            playerOriginalHealth: "",
-            playerOriginalMana: "",
-
             detailsSaved: false,
             savedDetailsEarlier: this.savedEarlier(),
             roundCounter: 1,
 
-            startRound: false,
+            
             attackAction: true,
             fireBallAction: true,
             lightningBoltAction: true,
             healingAction: true,
 
             surrender: true,
+
+            fightDetails: {
+                startRound: false,
+                playerFullSpeed : '',
+                monsterFullSpeed: '',
+                roundsOrder: [false, false] 
+            }
         };
     },
     computed: {
@@ -280,56 +286,89 @@ const { ref, createApp } = Vue.createApp({
             const validOrNot = this.validateDetails();
             // console.log("Validation is " + validOrNot);
             if (validOrNot) {
-                this.monsterOriginalHealth = this.monster.health;
-                this.monsterOriginalMana = this.monster.magic.mana;
-                this.playerOriginalHealth = this.player.health;
-                this.playerOriginalMana = this.player.magic.mana;
+                this.monster.originalHealth = this.monster.health;
+                this.monster.originalMana = this.monster.magic.mana;
+                this.player.originalHealth = this.player.health;
+                this.player.originalMana = this.player.magic.mana;
                 this.monster.name = capitalizeName(this.monster.name);
                 this.player.name = capitalizeName(this.player.name);
                 this.detailsSaved = true;
             }
         },
 
-        rollDice(rollFor) {
+        startRoundRoll(){
+            //change the button to disabled to prevent double clicks
+            this.fightDetails.startRound = true;
+            
+            this.showTwoDice();
+
+            let playerSpeed = [];
+            let monsterSpeed = [];
+
+            //user roll
+            playerSpeed = this.rolling();
+            
+            //monster roll
+            //use setTimeout to make sure animation is ending
+            setTimeout(() => {
+                monsterSpeed = this.rolling();
+            }, 2000);
+            //using another setTimeout to make sure the monster roll is done before calling the calculateWhoIsFaster()
+            setTimeout(() => {
+                this.calculateWhoIsFaster(playerSpeed, monsterSpeed);        
+            }, 4000);
+        },
+
+        doAction(rollFor) {
             console.log("diceRoll called for " + rollFor);
             switch (rollFor) {
-                case "agility":
-                    console.log("agility rolled");
-                    this.rolling();
-                    this.dices.dieVisible[2].active = false;
-                    this.dices.dieVisible[3].active = false;
-                    this.startRound = true;
-                    this.attackAction = false;
-                    this.fireBallAction = false;
-                    this.lightningBoltAction = false;
-                    this.healingAction = false;
-                    break;
                 case "attack":
+                    
+                    //change the button to disabled to prevent double clicks
+                    this.disableActionButtons();
+
                     console.log("attack rolled");
+                    this.showFourDice();
                     this.rolling();
-                    this.startRound = false;
-                    this.attackAction = true;
-                    this.fireBallAction = true;
-                    this.lightningBoltAction = true;
-                    this.healingAction = true;
+                    this.doAttack(this.player, this.monster);
+                    this.fightDetails.roundsOrder[1] = true;
+
+                    setTimeout(() => {
+                        this.woIsNext();
+                    }, 2000);
+
+                    break;
+                case "fire":
+                    this.disableActionButtons();
+                    this.fightDetails.roundsOrder[1] = true;
+                    break;
+                case "lightning":
+                    this.disableActionButtons();
+                    this.fightDetails.roundsOrder[1] = true;
+                    break;
+                case "heal":
+                    const isEnoughMana = this.checkEnoughMana("player");
+                    if(isEnoughMana){
+                        this.doHealing(this.player);
+                    } else {
+                        //do not activate heal because not enough mana -> display as error
+                        console.log("Player has not enough mana for healing");
+                    }
+                    this.fightDetails.roundsOrder[1] = true;
                     break;
             }
         },
 
         rolling() {
+            const diceResults = [];
             //using setTimeout() to give small amount of time for Vue to refresh DOM from computed property visibleDices()
             setTimeout(() => {
                 //now used querySelectorAll but later it must be changed to $refs and made all the dice to component
                 const dice = [...document.querySelectorAll(".die-list")];
-                const diceResults = [];
-
                 //toggle die's classes
                 this.classNames.evenRoll = !this.classNames.evenRoll;
                 this.classNames.oddRoll = !this.classNames.oddRoll;
-
                 dice.forEach((die) => {
-                // this.toggleClasses(die);
-
                 // dataset : https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/dataset
                 die.dataset.roll = this.getRandomNumber(1, 6);
                 diceResults.push(die.dataset.roll);
@@ -337,22 +376,178 @@ const { ref, createApp } = Vue.createApp({
                 // this.roundCounter++;
                 console.log(diceResults);
             }, 10);
+            return diceResults;
+        },
 
+        getRandomNumber(min, max) {
+            const minimum = Math.ceil(min);
+            const maximum = Math.floor(max);
+            return Math.floor(Math.random() * (maximum - minimum + 1)) + minimum;
+        },
+
+        checkEnoughMana(arg){
+            if(arg === "player"){
+                return (this.player.magic.mana >= 20) ? true : false;
+            } else {
+                return (this.monster.magic.mana >= 20) ? true : false;
+            }
+        },
+
+        woIsNext(){
+            //when monster and player is finished their action in the current round then start a new round
+            if ( this.fightDetails.roundsOrder[0] === true && this.fightDetails.roundsOrder[1] === true ) {
+                console.log("------------- NEW ROUND --------------")
+                this.newRound(1)
+            } 
+            //when monster done with action and the next is the player
+            else if ( this.fightDetails.roundsOrder[0] === true && this.fightDetails.roundsOrder[1] === false ) {
+                this.activatePlayerActions();
+            }
+            //when player done with action and the next is the monster
+            else {
+                this.monsterAILogic();
+            }
+        },
+
+        newRound(increment){
+            //increment the round IF its a new round ELSE do not increment -- (1 or 0)
+            this.roundCounter += increment;
+            //change back roundsOrder[] to the original status
+            this.fightDetails.roundsOrder = [false, false];
+            //activate the button
+            this.fightDetails.startRound = false;
+        },
+
+        disableActionButtons(){
+            this.attackAction = true;
+            this.fireBallAction = true;
+            this.lightningBoltAction = true;
+            this.healingAction = true;
+        },
+        showTwoDice(){
+            this.dices.dieVisible[2].active = false;
+            this.dices.dieVisible[3].active = false;
+        },
+        showFourDice(){
             for (let i = 0; i < this.dices.dieVisible.length; i++) {
                 this.dices.dieVisible[i].active = true;
             }
         },
+        calculateWhoIsFaster( playerSpeed, monsterSpeed ){
+            //parse all the elements in the arrays to Integer
+            for(let i=0; i<playerSpeed.length; i++){
+                playerSpeed[i] = parseInt(playerSpeed[i], 10);
+                monsterSpeed[i] = parseInt(monsterSpeed[i], 10);
+            }
+            this.fightDetails.playerFullSpeed = parseInt(this.player.speed, 10) + playerSpeed[0] + playerSpeed[1];
+            this.fightDetails.monsterFullSpeed = parseInt(this.monster.speed, 10) + monsterSpeed[0] + monsterSpeed[1];
+            
+            //update battleLog here ...
+            console.log(this.fightDetails.playerFullSpeed)
+            console.log(this.fightDetails.monsterFullSpeed)
 
-        getRandomNumber(min, max) {
-        min = Math.ceil(min);
-        max = Math.floor(max);
-        return Math.floor(Math.random() * (max - min + 1)) + min;
+            if( this.fightDetails.playerFullSpeed > this.fightDetails.monsterFullSpeed ){
+                //player's round
+                console.log("Player's Round");
+                this.activatePlayerActions();
+            }
+            else if( this.fightDetails.playerFullSpeed < this.fightDetails.monsterFullSpeed ) { 
+                //monster's round
+                console.log("Monster's Round");
+                this.monsterAILogic();
+                //if monster was the first in the round then let player do actions
+
+                //else new Round starts
+            }
+            else { 
+                //equal, so roll again
+                //update battleLog
+                console.log("Equal! Roll Again");
+                
+
+                //new round necessary
+                this.newRound();
+            }
         },
-        returnCalcStr(arg1, arg2) {
-        const result = arg1 + arg2;
-        // console.log(result)
-        return result;
+        monsterAILogic(){
+            console.log("monsterAILogic() called");
+            //First of all, the monster try to survive the battle, so if he/she has healing + mana + level of his/her health based on 
+            //randomHealthLevelForMonsterHealing() or less health than 20 (and originally was more)then try to heal himself/herself
+            if( (this.monster.health <= (this.randomHealthLevelForMonsterHealing())) || (this.monster.originalHealth >= 20 && this.monster.health < 20) ){
+                if( this.checkEnoughMana("monster") ){
+                    if( this.monster.magic.healingMagic === true ){
+                        console.log("monster HEALING ...");
+                        this.doHealing(this.monster);
+                        this.fightDetails.roundsOrder[0] = true;
+                    } else {
+                        console.log("monster DON'T HAS healing ...");
+                    }
+                } 
+                //if he/she has not enough mana or cannot healing then he try to use another magic
+                else {
+                    console.log("monster has not enough mana for healing or use another spells, so ATTACK");
+                    this.doAttack(this.monster, this.player);
+                    this.fightDetails.roundsOrder[0] = true;
+                    this.woIsNext();
+
+                }
+            } else{
+                this.doAttack(this.monster, this.player);
+                this.fightDetails.roundsOrder[0] = true;
+                this.woIsNext();
+            }
         },
+        randomHealthLevelForMonsterHealing(){
+            const randomHealRules = [(this.monster.originalHealth/3), (this.monster.originalHealth/2), 5, (this.monster.originalHealth-20)];
+            let index = Math.floor(Math.random() * randomHealRules.length);
+            console.log(index)
+            return randomHealRules[index];
+        },
+
+        activatePlayerActions(){
+            this.attackAction = false;
+            this.fireBallAction = false;
+            this.lightningBoltAction = false;
+            this.healingAction = false;
+        },
+
+        //DO ACTIONS (attack, fireBall, lightningBolt, healing)
+        doAttack(arg1, arg2){
+            let who = arg1;
+            let whom = arg2
+            console.log("doAttack() called by " + who.name + " to attack " + whom.name);
+            //TODO: add the logic of attack below
+            whom.health -= 10;
+        },
+
+        doHealing(arg){
+            let who = arg;
+            console.log("doHealing() called by " + who.name);
+            
+            if(who.health < who.originalHealth){
+                console.log("health is smaller than originalHealth")
+                if( (who.health + 20) <= who.originalHealth){
+                    console.log("+20 health is NOT MORE than originalHealth")
+                    this.disableActionButtons();
+                    who.health = who.health + 20;
+                    who.magic.mana -= 20;
+                    setTimeout(() => {
+                        this.woIsNext();
+                    }, 1000);
+                } else {
+                    console.log("+20 health is MORE than originalHealth, so just heal to originalHealth")
+                    this.disableActionButtons();
+                    who.health = who.originalHealth;
+                    who.magic.mana -= 20;
+                    setTimeout(() => {
+                        this.woIsNext();
+                    }, 1000);
+                }
+            } else {
+                //do not activate heal, and display an error to user
+                console.log("health is not smaller than originalHealth")
+            }
+        }
     },
 }).mount("#game");
 
