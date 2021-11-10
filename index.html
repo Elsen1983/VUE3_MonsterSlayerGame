@@ -190,6 +190,7 @@
             <p class="errors" v-if="errors.sameName === true">Names cannot be the same!</p>
             <button type="button" @click="saveDetails">Save</button>
             <button type="button" :disabled="!savedDetailsEarlier" @click="loadDetails">Load</button>
+            <button type="button">Reset</button>
             <button type="submit">Submit</button>
           </form>
         </section>
@@ -232,11 +233,12 @@
         </section>
         <section id="buttonsAndLog" class="container">
           <section id="controls">
-            <button :disabled="fightDetails.startRound" @click="startRoundRoll">WHO START</button>
-            <button :disabled="attackAction" @click="doAction('attack')">ATTACK</button>
-            <button :disabled="fireBallAction" @click="doAction('fire')">FIREBALL</button>
-            <button :disabled="lightningBoltAction" @click="doAction('lightning')">LIGHTNING BOLT</button>
-            <button :disabled="healingAction" @click="doAction('heal')">HEALING</button>
+            <button v-if="actionButton" :disabled="fightDetails.startRound" @click="startRoundRoll">WHO START</button>
+            <button v-if="actionButton" :disabled="attackAction" @click="playerAction('attack')">ATTACK</button>
+            <button v-if="actionButton" :disabled="fireBallAction" @click="playerAction('fire')">FIREBALL</button>
+            <button v-if="actionButton" :disabled="lightningBoltAction" @click="playerAction('lightning')">LIGHTNING BOLT</button>
+            <button v-if="actionButton" :disabled="healingAction" @click="playerAction('heal')">HEALING</button>
+            <button v-if="!actionButton" @click="newGameStart">NEW GAME</button>
           </section>
           <section id="log">
             <h2>Battle Log</h2>
