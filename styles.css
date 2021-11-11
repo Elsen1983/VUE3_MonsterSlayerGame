@@ -128,7 +128,7 @@ legend {
 
 .healthBar {
   width: 100%;
-  height: 20px;
+  height: 10px;
   border: 1px solid #575757;
   margin: 5px 0;
   background: #f7c1c1;
@@ -145,7 +145,7 @@ legend {
 
 .manaBar {
   width: 100%;
-  height: 20px;
+  height: 10px;
   border: 1px solid #575757;
   margin: 5px 0;
   background: #bcbbfa;
@@ -179,8 +179,61 @@ legend {
 
 #roundCounter {
   width: 100%;
+  margin: 10px 0 0 0;
+  text-align: center;
+}
+
+#roundCounterSpan{
+  padding: 5px 15px;
+  border: 1px solid black;
+}
+
+#roundCounterNumber{
+  color: red;
+  font-size: 1.25em;
+}
+
+#monsterIcon{
+  width: 35%;
+  text-align: center;
+  float: left;
+  text-align: right;
+  
+}
+#monsterIcon img{
+  max-width: 75px;
+  width: 75px;
+  height: 75px;
+  /* border: 3px green solid;
+  border-radius: 25%; */
+}
+
+#actionDrawArea{
+  width: 30%;
+  text-align: center;
+  float: left;
+}
+/* TODO:  check size of it for media queries*/
+#actionDrawArea img{
+  margin:5px 0;
+  max-height: 65px;
+  max-width:100px;
+}
+
+#playerIcon{
+  width: 35%;
   margin: 5px 0 auto;
   text-align: center;
+  float: left;
+  text-align: left;
+}
+
+#playerIcon img{
+  max-width: 75px;
+  width: 75px;
+  height: 75px;
+  /* border: 3px green solid;
+  border-radius: 25%; */
 }
 
 #controls {
@@ -278,6 +331,7 @@ button:disabled {
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
+  clear: both;
 }
 
 .dice {
@@ -288,7 +342,7 @@ button:disabled {
   grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
   grid-template-rows: auto;
   justify-items: center;
-  padding: 0 1rem;
+  padding: 0 0.75rem;
   /* perspective: 0; */
 }
 .die-list {
@@ -321,8 +375,8 @@ button:disabled {
     "seven eight nine";
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: repeat(3, 1fr);
-  height: 4rem;
-  width: 4rem;
+  height: 3rem;
+  width: 3rem;
   border: 2px solid #0000007d;
 }
 .dot {
@@ -331,9 +385,9 @@ button:disabled {
   border-radius: 30%;
   box-shadow: inset -0.15rem 0.15rem 0.25rem rgba(0, 0, 0, 0.5);
   display: block;
-  height: 1rem;
+  height: 0.75rem;
   justify-self: center;
-  width: 1rem;
+  width: 0.75rem;
 }
 .even-roll[data-roll="1"] {
   transform: rotateX(360deg) rotateY(720deg) rotateZ(360deg);
@@ -372,22 +426,22 @@ button:disabled {
   transform: rotateX(-360deg) rotateY(-900deg) rotateZ(-360deg);
 }
 [data-side="1"] {
-  transform: rotate3d(0, 0, 0, 90deg) translateZ(2rem);
+  transform: rotate3d(0, 0, 0, 90deg) translateZ(1.5rem);
 }
 [data-side="2"] {
-  transform: rotate3d(-1, 0, 0, 90deg) translateZ(2rem);
+  transform: rotate3d(-1, 0, 0, 90deg) translateZ(1.5rem);
 }
 [data-side="3"] {
-  transform: rotate3d(0, 1, 0, 90deg) translateZ(2rem);
+  transform: rotate3d(0, 1, 0, 90deg) translateZ(1.5rem);
 }
 [data-side="4"] {
-  transform: rotate3d(0, -1, 0, 90deg) translateZ(2rem);
+  transform: rotate3d(0, -1, 0, 90deg) translateZ(1.5rem);
 }
 [data-side="5"] {
-  transform: rotate3d(1, 0, 0, 90deg) translateZ(2rem);
+  transform: rotate3d(1, 0, 0, 90deg) translateZ(1.5rem);
 }
 [data-side="6"] {
-  transform: rotate3d(1, 0, 0, 180deg) translateZ(2rem);
+  transform: rotate3d(1, 0, 0, 180deg) translateZ(1.5rem);
 }
 [data-side="1"] .dot:nth-of-type(1) {
   grid-area: five;
@@ -452,6 +506,10 @@ button:disabled {
 [data-side="6"] .dot:nth-of-type(6) {
   grid-area: nine;
 }
+
+
+
+
 
 @media (min-width: 900px) {
   /* .dice {

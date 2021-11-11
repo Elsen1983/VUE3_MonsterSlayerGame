@@ -1,3 +1,4 @@
+
 // validation off all details
 function checkValidation(inputObject) {
     let selectedName = inputObject.name,
@@ -153,8 +154,12 @@ const { ref, createApp } = Vue.createApp({
                 startRound: false,
                 playerFullSpeed : '',
                 monsterFullSpeed: '',
-                roundsOrder: [false, false] 
+                roundsOrder: [false, false]
             },
+            monsterImageSource: 'img/monster.png',
+            playerImageSource: 'img/player.png',
+            actionImageSource: 'img/hourglass.gif',
+
             attackOrSpell: [0,0,1,0,0,1,0,1,0,0]
 
         };
@@ -176,7 +181,27 @@ const { ref, createApp } = Vue.createApp({
             });
         },
     },
-    watch: {},
+    watch: {
+        'player.health'(value){
+            if(value <=0){
+                setTimeout(()=>{
+                    this.playerImageSource = 'img/graveyard.png';
+                    this.actionImageSource = 'img/playerLose.png';
+                }, 2000)
+                
+            }
+        },
+        'monster.health'(value){
+            if(value <=0){
+                setTimeout(()=>{
+                    this.monsterImageSource = 'img/graveyard.png';
+                    this.actionImageSource = 'img/playerWin.png';
+                }, 2000)
+                
+            }
+        }
+        
+    },
     methods: {
         checkNamesConflict() {
             // if none of name field is empty
@@ -241,6 +266,7 @@ const { ref, createApp } = Vue.createApp({
                 console.log(monster);
                 console.log(player);
             }
+            // TODO: remove errors
         },
 
         validateDetails() {
@@ -547,6 +573,7 @@ const { ref, createApp } = Vue.createApp({
                 }
             }
         },
+
         selectMonsterSpellOrAttack(fireBall,lightningBolt,range){
 
             let selectAction = this.attackOrSpell[this.getRandomNumber(1,range)-1];
@@ -593,7 +620,6 @@ const { ref, createApp } = Vue.createApp({
             
         },
 
-
         randomHealthLevelForMonsterHealing(){
             const randomHealRules = [(this.monster.originalHealth/3), (this.monster.originalHealth/2), (this.monster.originalHealth/4), (this.monster.originalHealth-20)];
             let index = Math.floor(Math.random() * randomHealRules.length);
@@ -617,7 +643,6 @@ const { ref, createApp } = Vue.createApp({
             
         },
 
-        //DO ACTIONS (attack, fireBall, lightningBolt, healing)
         doAttack(arg1, arg2, arg3){
             let who = arg1;
             let whom = arg2;
@@ -679,6 +704,7 @@ const { ref, createApp } = Vue.createApp({
             }, 2000);
 
         },
+
         doLightningBolt(arg1, arg2, arg3){
             let who = arg1;
             let whom = arg2;
@@ -723,6 +749,7 @@ const { ref, createApp } = Vue.createApp({
 
             }
         },
+
         newGameStart(){
             this.detailsSaved = false;
             this.player.health = this.player.originalHealth;
@@ -732,6 +759,58 @@ const { ref, createApp } = Vue.createApp({
             this.monster.magic.mana = this.monster.originalMana;
 
             this.fightDetails.roundsOrder = [false,false];
+
+            this.roundCounter = 1;
+
+            this.monsterImageSource = 'img/monster.png';
+            this.playerImageSource = 'img/player.png';
+            this.actionImageSource= 'img/hourglass.gif';
+        },
+
+        resetFields(){
+            this.monster.name = '';
+            this.monster.health = '';
+            this.monster.speed = '';
+            this.monster.attack = '';
+            this.monster.damageMin = '';
+            this.monster.damageMax = '';
+            this.monster.defense = '';
+            this.monster.hasMagic = false;
+            this.monster.magic.mana = '';
+            this.monster.magic.fireBallMagic = false;
+            this.monster.magic.lightningBoltMagic = false;
+            this.monster.magic.healingMagic = false;
+            this.monster.originalHealth = '';
+            this.monster.originalMana = '';
+
+            this.player.name = '';
+            this.player.health = '';
+            this.player.speed = '';
+            this.player.attack = '';
+            this.player.damageMin = '';
+            this.player.damageMax = '';
+            this.player.defense = '';
+            this.player.hasMagic = false;
+            this.player.magic.mana = '';
+            this.player.magic.fireBallMagic = false;
+            this.player.magic.lightningBoltMagic = false;
+            this.player.magic.healingMagic = false;
+            this.player.originalHealth = '';
+            this.player.originalMana = '';
+
+            this.fightDetails.startRound = false;
+            this.fightDetails.roundsOrder = [false,false];
+
+            this.errors.spellMissingMonster= false,
+            this.errors.spellMissingPlayer= false,
+            this.errors.sameName= false,
+            this.errors.validForm= false,
+            this.errors.monsterErrorMessage= "",
+            this.errors.playerErrorMessage= "",
+
+            this.currentDices = [],
+            this. detailsSaved= false,
+            this.roundCounter = 1;
         }
     },
 }).mount("#game");

@@ -134,7 +134,7 @@
                 <input type="number" id="playerWeaponDamageMin" name="playerWeaponDamageMin" required min="1" max="6" onKeyPress="return isNumber(event);" v-model.number="player.damageMin" />
                 <span class="validity"></span>
               </div>
-              <br />
+              <br/>
               <div>
                 <label for="playerWeaponDamageMax">Max Damage (7 - 15): </label>
                 <input type="number" id="playerWeaponDamageMax" name="playerWeaponDamageMax" required min="7" max="15" onKeyPress="return isNumber(event);" v-model.number="player.damageMax" />
@@ -190,7 +190,7 @@
             <p class="errors" v-if="errors.sameName === true">Names cannot be the same!</p>
             <button type="button" @click="saveDetails">Save</button>
             <button type="button" :disabled="!savedDetailsEarlier" @click="loadDetails">Load</button>
-            <button type="button">Reset</button>
+            <button type="button" @click="resetFields">Reset</button>
             <button type="submit">Submit</button>
           </form>
         </section>
@@ -219,7 +219,14 @@
           </div>
         </section>
         <section class="container">
-          <h2 id="roundCounter">ROUND {{roundCounter}}</h2>
+          <h2 id="roundCounter"><span id="roundCounterSpan">ROUND <span id="roundCounterNumber">{{roundCounter}}</span></span></h2>
+          <br>
+          <div>
+            <span id="monsterIcon"><img :src="monsterImageSource" /></span>
+            <span id="actionDrawArea"><img :src="actionImageSource"></span>
+            <span id="playerIcon"><img :src="playerImageSource" /></span>
+          </div>
+          
           <!-- Dice(s) -->
           <section id="dices">
             <div v-for="i in visibleDices" :key="i" class="dice">
