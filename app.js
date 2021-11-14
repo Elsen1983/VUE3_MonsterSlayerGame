@@ -89,6 +89,8 @@ const { ref, createApp } = Vue.createApp({
                 validForm: false,
                 monsterErrorMessage: "",
                 playerErrorMessage: "",
+                differentNamesRequested : "Names cannot be the same!",
+                spellRequested : "Select at least one spell!"
             },
             monster: {
                 name: "",
@@ -107,6 +109,7 @@ const { ref, createApp } = Vue.createApp({
                 },
                 originalHealth: "",
                 originalMana: "",
+                monsterImageSource: 'img/monster.png',
             },
             player: {
                 name: "",
@@ -125,6 +128,7 @@ const { ref, createApp } = Vue.createApp({
                 },
                 originalHealth: "",
                 originalMana: "",
+                playerImageSource: 'img/player.png',
             },
             dices: {
                 dicesNumber: 4,
@@ -137,41 +141,56 @@ const { ref, createApp } = Vue.createApp({
                 { number: 4, active: false },
                 ],
             },
+            fightDetails: {
+                startRound: false,
+                roundCounter: 1,
+                playerFullSpeed : '',
+                monsterFullSpeed: '',
+                roundsOrder: [false, false],
+                actionImageSource: 'img/hourglass.gif',
+            },
+
             currentDices:[],
             detailsSaved: false,
             savedDetailsEarlier: this.savedEarlier(),
-            roundCounter: 1,
+            
 
             actionButton: true,
+
             attackAction: true,
             fireBallAction: true,
             lightningBoltAction: true,
             healingAction: true,
+            surrender: false,
 
-            surrender: true,
+            attackOrSpell: [0,0,1,0,0,1,0,1,0,0],
 
-            fightDetails: {
-                startRound: false,
-                playerFullSpeed : '',
-                monsterFullSpeed: '',
-                roundsOrder: [false, false]
-            },
-            monsterImageSource: 'img/monster.png',
-            playerImageSource: 'img/player.png',
-            actionImageSource: 'img/hourglass.gif',
-
-            attackOrSpell: [0,0,1,0,0,1,0,1,0,0]
+            logMessages: []
 
         };
     },
     computed: {
         savedBefore() { return !this.savedDetailsEarlier; },
 
-        monsterCurrentHealth() { return this.monster.health + "%"; },
+        monsterCurrentHealth() { 
+            if(this.monster.health<0){
+                this.monster.health = 0;
+                return "0%";
+            }else{
+                return this.monster.health + "%";
+            }
+        },
 
         monsterCurrentMana() { return this.monster.magic.mana + "%"; },
 
-        playerCurrentHealth() { return this.player.health + "%"; },
+        playerCurrentHealth() { 
+            if(this.player.health<0){
+                this.player.health = 0;
+                return "0%";
+            }else{
+                return this.player.health + "%";
+            }
+        },
 
         playerCurrentMana() { return this.player.magic.mana + "%"; },
 
@@ -184,25 +203,24 @@ const { ref, createApp } = Vue.createApp({
     watch: {
         'player.health'(value){
             if(value <=0){
-                setTimeout(()=>{
-                    this.playerImageSource = 'img/graveyard.png';
-                    this.actionImageSource = 'img/playerLose.png';
-                }, 2000)
-                
+                this.player.playerImageSource = 'img/graveyard.png';
+                this.fightDetails.actionImageSource = 'img/playerLose.png'; 
+            }else{
+                this.player.playerImageSource = 'img/player.png';
             }
         },
         'monster.health'(value){
             if(value <=0){
-                setTimeout(()=>{
-                    this.monsterImageSource = 'img/graveyard.png';
-                    this.actionImageSource = 'img/playerWin.png';
-                }, 2000)
-                
+                this.monster.monsterImageSource = 'img/graveyard.png';
+                this.fightDetails.actionImageSource = 'img/playerWin.png';
+            }else{
+                this.monster.monsterImageSource = 'img/monster.png';
             }
         }
         
     },
     methods: {
+
         checkNamesConflict() {
             // if none of name field is empty
             if (this.monster.name !== "" && this.player.name !== "") {
@@ -240,33 +258,6 @@ const { ref, createApp } = Vue.createApp({
         savedEarlier() {
             if (localStorage.getItem("monsterDetails") !== null && localStorage.getItem("playerDetails") !== null) { return true;
             } else { return false; }
-        },
-
-        saveDetails() {
-            const validationForSave = this.validateDetails();
-            if (validationForSave) {
-                console.log("Save the details ...");
-                this.errors.monsterErrorMessage = "";
-                this.errors.playerErrorMessage = "";
-                this.errors.spellMissingMonster = false;
-                this.errors.spellMissingPlayer = false;
-                localStorage.setItem("monsterDetails", JSON.stringify(this.monster));
-                localStorage.setItem("playerDetails", JSON.stringify(this.player));
-                this.savedDetailsEarlier = true;
-                alert("Details are saved!");
-            }
-        },
-
-        loadDetails() {
-            if (this.savedDetailsEarlier) {
-                let monster = JSON.parse(localStorage.getItem("monsterDetails"));
-                let player = JSON.parse(localStorage.getItem("playerDetails"));
-                this.monster = monster;
-                this.player = player;
-                console.log(monster);
-                console.log(player);
-            }
-            // TODO: remove errors
         },
 
         validateDetails() {
@@ -308,25 +299,6 @@ const { ref, createApp } = Vue.createApp({
             }
         },
 
-        submitDetails() {
-            this.errors.monsterErrorMessage = "";
-            this.errors.playerErrorMessage = "";
-            const validOrNot = this.validateDetails();
-            // console.log("Validation is " + validOrNot);
-            if (validOrNot) {
-                this.monster.originalHealth = this.monster.health;
-                this.monster.originalMana = this.monster.magic.mana;
-                this.player.originalHealth = this.player.health;
-                this.player.originalMana = this.player.magic.mana;
-                this.monster.name = capitalizeName(this.monster.name);
-                this.player.name = capitalizeName(this.player.name);
-                this.detailsSaved = true;
-                this.actionButton = true;
-                this.showTwoDice();
-                this.fightDetails.startRound = false;
-            }
-        },
-
         actionButtons() {
             if(this.monster.health <=0 || this.player.health <=0) { this.actionButton= false; return false}
             else { this.actionButton = true; return true;}
@@ -335,6 +307,7 @@ const { ref, createApp } = Vue.createApp({
         startRoundRoll(){
             //change the button to disabled to prevent double clicks
             this.fightDetails.startRound = true;
+            this.surrender = false;
             
             this.showTwoDice();
 
@@ -369,7 +342,6 @@ const { ref, createApp } = Vue.createApp({
                 die.dataset.roll = this.getRandomNumber(1, 6);
                 diceResults.push(die.dataset.roll);
                 });
-                // this.roundCounter++;
                 //console.log(diceResults);
                 this.currentDices = [...diceResults];
             }, 10);
@@ -392,23 +364,26 @@ const { ref, createApp } = Vue.createApp({
 
         woIsNext(){
             //if the game is not ended with the monster or player death, then check who is the next
+            let message = '';
             if(this.actionButtons()){
-                //one second break for make sure user can read the battleLog
+                //one second break for make sure user can read the battleLog and display action image
                 setTimeout(()=>{
                                 
                     //when monster and player is finished their action in the current round then start a new round
                     if ( this.fightDetails.roundsOrder[0] === true && this.fightDetails.roundsOrder[1] === true ) {
-                        console.log("------------- NEW ROUND --------------")
+                        message = '----- Round ' + (parseInt(this.fightDetails.roundCounter,10)+1) + ' -----';
+                        this.addLogMessage('', '', 'message', 0, message);
+                        this.fightDetails.actionImageSource = "img/hourglass.gif"
                         this.newRound(1)
                     } 
                     //when monster done with action and the next is the player
                     else if ( this.fightDetails.roundsOrder[0] === true && this.fightDetails.roundsOrder[1] === false ) {
-                        console.log("*** Player ***");
+                        // console.log("*** Player ***");
                         this.activatePlayerActions();
                     }
                     //when player done with action and the next is the monster
                     else {
-                        console.log("*** Monster ***");
+                        // console.log("*** Monster ***");
                         this.monsterAILogic();
                     }
                 }, 1000)
@@ -417,7 +392,7 @@ const { ref, createApp } = Vue.createApp({
 
         newRound(increment){
             //increment the round IF its a new round ELSE do not increment -- (1 or 0)
-            this.roundCounter += increment;
+            this.fightDetails.roundCounter += increment;
             //change back roundsOrder[] to the original status
             this.fightDetails.roundsOrder = [false, false];
             //activate the button
@@ -452,28 +427,28 @@ const { ref, createApp } = Vue.createApp({
             this.fightDetails.monsterFullSpeed = parseInt(this.monster.speed, 10) + monsterSpeed[0] + monsterSpeed[1];
             
             //update battleLog here ...
-            console.log(this.fightDetails.playerFullSpeed)
-            console.log(this.fightDetails.monsterFullSpeed)
+            // console.log(this.fightDetails.playerFullSpeed);
+            // console.log(this.fightDetails.monsterFullSpeed);
+            let message= '';
 
             if( this.fightDetails.playerFullSpeed > this.fightDetails.monsterFullSpeed ){
+                message = "With " + this.fightDetails.playerFullSpeed + " ("+ this.player.speed + "+" + playerSpeed[0] + "+" + playerSpeed[1]+ ") " + this.player.name +  " starts the round.";
+                this.addLogMessage('', '', 'message', 0, message);
                 //player's round
-                console.log("Player's Round");
                 this.activatePlayerActions();
             }
             else if( this.fightDetails.playerFullSpeed < this.fightDetails.monsterFullSpeed ) { 
+                message = "With " + this.fightDetails.monsterFullSpeed + " ("+ this.monster.speed + "+" + monsterSpeed[0] + "+" + monsterSpeed[1]+ ") " + this.monster.name +  " starts the round.";
+                this.addLogMessage('', '', 'message', 0, message);
                 //monster's round
-                console.log("Monster's Round");
                 this.monsterAILogic();
-                //if monster was the first in the round then let player do actions
-
-                //else new Round starts
             }
             else { 
                 //equal, so roll again
+                message = "Equal Roll ... Roll again!"
                 //update battleLog
-                console.log("Equal! Roll Again");
-                
-
+                this.addLogMessage('', '', 'message', 0, message);
+                // console.log("Equal! Roll Again");
                 //new round necessary
                 this.newRound(0);
             }
@@ -483,28 +458,25 @@ const { ref, createApp } = Vue.createApp({
             // console.log("diceRoll called for " + rollFor);
             switch (rollFor) {
                 case "attack":
-                    
                     //change the button to disabled to prevent double clicks
                     this.disableActionButtons();
                     this.doAttack(this.player, this.monster, 1);
-
                     break;
                 case "fire":
                     this.disableActionButtons();
                     this.doFireBall(this.player, this.monster, 1);
-                    // this.fightDetails.roundsOrder[1] = true;
                     break;
                 case "lightning":
                     this.disableActionButtons();
                     this.doLightningBolt(this.player, this.monster, 1);
-                    //this.fightDetails.roundsOrder[1] = true;
                     break;
                 case "heal":
                     this.disableActionButtons();
                     const isEnoughMana = this.checkEnoughMana("player");
                     if(isEnoughMana){
-                        this.doHealing(this.player);
+                        this.doHealing(this.player, 1);
                     } else {
+                        //TODO: todo?
                         //do not activate heal because not enough mana -> display as error
                         console.log("Player has not enough mana for healing");
                     }
@@ -524,14 +496,11 @@ const { ref, createApp } = Vue.createApp({
             //execute the player with spell (or attack if has not enough mana)
             if(this.player.health <= 10 && monsterHealth > 20){
                 if ((monsterFireBall === true || monsterLightningBolt === true)) {
-
-                        console.log("Monster try to execute player with Magic!");
-
+                        // console.log("Monster try to execute player with Magic!");
                         this.selectMonsterSpellForUse(monsterFireBall, monsterLightningBolt);
-                    
                 } else {
                     //without mana just attack
-                    console.log("Monster try to execute player with Attack!");
+                    // console.log("Monster try to execute player with Attack!");
                     this.doAttack(this.monster, this.player, 0);
                 }
             }
@@ -540,21 +509,18 @@ const { ref, createApp } = Vue.createApp({
             else if( (monsterHealth <= (this.randomHealthLevelForMonsterHealing())) || (this.monster.originalHealth >= 20 && monsterHealth < 20) ){
                 if( this.checkEnoughMana("monster") ){
                     if( monsterHealing ){
-                        console.log("monster HEALING ...");
-                        this.doHealing(this.monster);
+                        // console.log("monster HEALING ...");
+                        this.doHealing(this.monster, 0);
                         this.fightDetails.roundsOrder[0] = true;
                     } 
                     else if ( monsterMana >= 40 ) {
-                        console.log( "monster DON'T HAS healing ... but ..." );
+                        // console.log( "monster DON'T HAS healing ... but ..." );
                         this.selectMonsterSpellOrAttack(monsterFireBall, monsterLightningBolt, 10);
                     } else {
                         this.selectMonsterSpellOrAttack(monsterFireBall, monsterLightningBolt, 5);
                     }
-
-                } 
-                //if he/she has not enough mana then he try to use another magic
+                }
                 else {
-                    console.log("monster has not enough mana for healing so ... ATTACK");
                     this.doAttack(this.monster, this.player, 0);
                 }
             } else{
@@ -575,14 +541,10 @@ const { ref, createApp } = Vue.createApp({
         },
 
         selectMonsterSpellOrAttack(fireBall,lightningBolt,range){
-
             let selectAction = this.attackOrSpell[this.getRandomNumber(1,range)-1];
-            console.log("selected Action: " + selectAction);
             if(selectAction === 1){
-                console.log("SPELL");
                 this.selectMonsterSpellForUse(fireBall, lightningBolt);
             }else{
-                console.log("ATTACK");
                 this.doAttack(this.monster, this.player, 0);
             }
         },
@@ -594,27 +556,22 @@ const { ref, createApp } = Vue.createApp({
                 if(fire === true && lightning === true){
                     let whichSpell = this.getRandomNumber(1,2);
                     if(whichSpell === 1){
-                        console.log("Monster using FireBall! - r");
                         this.doFireBall(this.monster, this.player, 0);
                     }else{
-                        console.log("Monster using LightningBolt! - r");
                         this.doLightningBolt(this.monster, this.player, 0);
                     }
                 }
                 //choose fireBall
                 else if(fire === true && lightning === false){
-                    console.log("Monster using FireBall!");
                     this.doFireBall(this.monster, this.player, 0);
                 }
                 //choose lightningBolt
                 else{
-                    console.log("Monster using LightningBolt!");
                     this.doLightningBolt(this.monster, this.player, 0);
                 }
             } 
             //mana enough just for fireBall
             else {
-                console.log("Monster using FireBall!");
                 this.doFireBall(this.monster, this.player, 0);
             }
             
@@ -643,14 +600,14 @@ const { ref, createApp } = Vue.createApp({
             
         },
 
+        /*  ---------------------------
+            --------- ACTIONS ---------
+            ---------------------------
+        */ 
         doAttack(arg1, arg2, arg3){
             let who = arg1;
             let whom = arg2;
-            
-            console.log(who.name + " attacking " + whom.name);
-            //TODO: add the logic of attack below
-
-
+            // console.log(who.name + " attacking " + whom.name);
             this.showFourDice();
             this.rolling();
             //need to wait a small amount of time to let the rolling() finish the process
@@ -661,27 +618,33 @@ const { ref, createApp } = Vue.createApp({
                     dicesSum += parseInt(x,10);
                 });
                 finalAttack += dicesSum;
-                console.log("Attack: " + finalAttack + " / Defense: " + whom.defense)
-
+                // console.log("Attack: " + finalAttack + " / Defense: " + whom.defense)
+                this.changeImageSource("attack", arg3);
                 if(finalAttack > whom.defense){
                     //calculate the damage
                     let damage = this.getRandomNumber(who.damageMin, who.damageMax);
                     //check that the attack is critical hit or not (15 points or more over defense points => critical hit => + 5dmg)
                     if ( (finalAttack - whom.defense) >= 15 ){
-                        console.log( "Wow, it was a critical hit! Damage is " + (damage + 5) );
-                        whom.health -= (damage + 5);
+                        // console.log( "Wow, it was a critical hit! Damage is " + (damage + 5) );
+                        this.addLogMessage(who.name, whom.name, 'crit-attack', damage+5, '');
+                        //add delay on changing to let dices finish the roll
+                        setTimeout(() => {
+                            whom.health -= (damage + 5);
+                        }, 2000);
                     }else{
-                        console.log( "Success! Damage is " + damage );
-                        whom.health -= damage;
+                        // console.log( "Success! Damage is " + damage );
+                        this.addLogMessage(who.name, whom.name, 'attack', damage, '');
+                        //add delay on changing to let dices finish the roll
+                        setTimeout(() => {
+                            whom.health -= damage;
+                        }, 2000);
                     }
-
-                    
-                    
                 }else{
-                    console.log("Unsuccessful! Not enough attack points...")
+                    this.addLogMessage(who.name, whom.name, 'defended', 0, '');
+                    // console.log("Unsuccessful! Not enough attack points...")
                 }
-                
                 this.fightDetails.roundsOrder[arg3] = true;
+                //add delay on changing to let dices finish the roll
                 setTimeout(()=>{
                     this.woIsNext();
                 }, 2000);
@@ -692,53 +655,57 @@ const { ref, createApp } = Vue.createApp({
         doFireBall(arg1, arg2, arg3){
             let who = arg1;
             let whom = arg2;
-
-            console.log(who.name + " used FireBall against " + whom.name);
-
+            this.changeImageSource("fireBall", arg3);
+            // console.log(who.name + " used FireBall against " + whom.name);
             who.magic.mana -= 15;
             whom.health -= 10;
-
             this.fightDetails.roundsOrder[arg3] = true;
+            this.addLogMessage(who.name, whom.name, 'fireball', 10, '');
+            //add delay on changing properties
             setTimeout(()=>{
                 this.woIsNext();
-            }, 2000);
+            }, 1500);
 
         },
 
         doLightningBolt(arg1, arg2, arg3){
             let who = arg1;
             let whom = arg2;
-
-            console.log(who.name + " used LightningBolt against " + whom.name);
-
+            this.changeImageSource("lightningBolt", arg3);
+            // console.log(who.name + " used LightningBolt against " + whom.name);
             who.magic.mana -= 20;
             whom.health -= 15;
-
             this.fightDetails.roundsOrder[arg3] = true;
+            this.addLogMessage(who.name, whom.name, 'lightning', 10, '');
             setTimeout(()=>{
                 this.woIsNext();
             }, 2000);
         },
 
-        doHealing(arg1, arg2, arg3){
+        doHealing(arg1, arg2){
+            console.log(arg1 + "and" + arg2)
             let who = arg1;
             console.log(who.name + " wants to heal.");
             
             if(who.health < who.originalHealth){
                 console.log("health is smaller than originalHealth")
                 if( (who.health + 20) <= who.originalHealth){
+                    this.changeImageSource("healing", arg2);
                     console.log("+20 health is NOT MORE than originalHealth")
                     who.health = who.health + 20;
                     who.magic.mana -= 20;
-                    this.fightDetails.roundsOrder[arg3] = true;
+                    this.fightDetails.roundsOrder[arg2] = true;
+                    this.addLogMessage(who.name, who.name, 'heal', 20, '');
                     setTimeout(() => {
                         this.woIsNext();
                     }, 1000);
                 } else {
-                    console.log("+20 health is MORE than originalHealth, so just heal to originalHealth")
+                    this.changeImageSource("healing", arg2);
+                    console.log("+20 health is MORE than originalHealth, so just heal to originalHealth");
                     who.health = who.originalHealth;
                     who.magic.mana -= 20;
-                    this.fightDetails.roundsOrder[arg3] = true;
+                    this.fightDetails.roundsOrder[arg2] = true;
+                    this.addLogMessage(who.name, who.name, 'heal', 20, '');
                     setTimeout(() => {
                         this.woIsNext();
                     }, 1000);
@@ -746,28 +713,119 @@ const { ref, createApp } = Vue.createApp({
             } else {
                 //do not activate heal, and display an error to user
                 console.log("health is not smaller than originalHealth");
-
+                //TODO: hmmm ...
             }
         },
 
-        newGameStart(){
-            this.detailsSaved = false;
-            this.player.health = this.player.originalHealth;
-            this.monster.health = this.monster.originalHealth;
-
-            this.player.magic.mana = this.player.originalMana;
-            this.monster.magic.mana = this.monster.originalMana;
-
-            this.fightDetails.roundsOrder = [false,false];
-
-            this.roundCounter = 1;
-
-            this.monsterImageSource = 'img/monster.png';
-            this.playerImageSource = 'img/player.png';
-            this.actionImageSource= 'img/hourglass.gif';
+        /*  ----------------------------
+            ------ Images Source -------
+            ----------------------------
+        */ 
+        changeImageSource(actionType, whoUsed){
+            switch(actionType){
+                case "attack":
+                    if(whoUsed===1){this.fightDetails.actionImageSource = "img/swordLeft.png"}
+                    else{this.fightDetails.actionImageSource = "img/swordRight.png"}
+                    break;
+                case "fireBall":
+                    if(whoUsed===1){this.fightDetails.actionImageSource = "img/fireballLeft.png"}
+                    else{this.fightDetails.actionImageSource = "img/fireballRight.png"}
+                    break;
+                case "lightningBolt":
+                    if(whoUsed===1){this.fightDetails.actionImageSource = "img/lightningBoltLeft.png"}
+                    else{this.fightDetails.actionImageSource = "img/lightningBoltRight.png"}
+                    break;
+                case "healing":
+                    if(whoUsed===1){this.fightDetails.actionImageSource = "img/healingRight.png"}
+                    else{this.fightDetails.actionImageSource = "img/healingLeft.png"}
+                    break;
+                default:
+                    break;
+            }
         },
 
-        resetFields(){
+        /*  ----------------------------
+            ------- GAME OPTIONS -------
+            ----------------------------
+        */ 
+        //START game if everything valid
+        submitDetails() {
+            this.errors.monsterErrorMessage = "";
+            this.errors.playerErrorMessage = "";
+            const validOrNot = this.validateDetails();
+            if (validOrNot) {
+                this.monster.originalHealth = this.monster.health;
+                this.monster.originalMana = this.monster.magic.mana;
+                this.player.originalHealth = this.player.health;
+                this.player.originalMana = this.player.magic.mana;
+                this.monster.name = capitalizeName(this.monster.name);
+                this.player.name = capitalizeName(this.player.name);
+                this.detailsSaved = true;
+                this.actionButton = true;
+
+                this.surrender = true;
+                this.showTwoDice();
+                //this.fightDetails.startRound = false;
+                this.resetFightDetails();
+                let message = '----- Round ' + this.fightDetails.roundCounter + ' -----';
+                this.addLogMessage('', '', 'message', 0, message);
+            }
+        },
+
+        //SAVE Form to LocalStorage
+        saveDetails() {
+            const validationForSave = this.validateDetails();
+            if (validationForSave) {
+                console.log("Save the details ...");
+                this.errors.monsterErrorMessage = "";
+                this.errors.playerErrorMessage = "";
+                this.errors.spellMissingMonster = false;
+                this.errors.spellMissingPlayer = false;
+                localStorage.setItem("monsterDetails", JSON.stringify(this.monster));
+                localStorage.setItem("playerDetails", JSON.stringify(this.player));
+                this.savedDetailsEarlier = true;
+
+                this.resetFightDetails();
+
+                alert("Details are saved!");
+            }
+        },
+
+        //LOAD saved details from LocalStorage
+        loadDetails() {
+            // this.resetData();
+            if (this.savedDetailsEarlier) {
+                let monster = JSON.parse(localStorage.getItem("monsterDetails"));
+                let player = JSON.parse(localStorage.getItem("playerDetails"));
+                this.monster = monster;
+                this.player = player;
+
+                this.resetFightDetails();
+
+                console.log(monster);
+                console.log(player);
+            }
+        },
+
+        //RESET all the data
+        resetData(){
+            // window.location.reload();
+
+            //it is not the best way to reset data() properties, so must be changed later
+            //classNames{}
+            this.classNames.evenRoll= true;
+            this.classNames.oddRoll= false;
+            //errors{}
+            
+            this.errors.spellMissingMonster= false;
+            this.errors.spellMissingPlayer= false;
+            this.errors.sameName= false;
+            this.errors.validForm= false;
+            this.errors.monsterErrorMessage= "";
+            this.errors.playerErrorMessage= "";
+            this.errors.differentNamesRequested = "Names cannot be the same!";
+            this.errors.spellRequested = "Select at least one spell!";
+            //monster{}
             this.monster.name = '';
             this.monster.health = '';
             this.monster.speed = '';
@@ -782,7 +840,8 @@ const { ref, createApp } = Vue.createApp({
             this.monster.magic.healingMagic = false;
             this.monster.originalHealth = '';
             this.monster.originalMana = '';
-
+            this.monster.monsterImageSource = 'img/monster.png';
+            //player{}
             this.player.name = '';
             this.player.health = '';
             this.player.speed = '';
@@ -797,20 +856,94 @@ const { ref, createApp } = Vue.createApp({
             this.player.magic.healingMagic = false;
             this.player.originalHealth = '';
             this.player.originalMana = '';
-
-            this.fightDetails.startRound = false;
-            this.fightDetails.roundsOrder = [false,false];
-
-            this.errors.spellMissingMonster= false,
-            this.errors.spellMissingPlayer= false,
-            this.errors.sameName= false,
-            this.errors.validForm= false,
-            this.errors.monsterErrorMessage= "",
-            this.errors.playerErrorMessage= "",
-
+            this.player.playerImageSource = 'img/player.png';
+            //dices{}
+            this.dices.dicesNumber = 4;
+            this.dices.dieSides = 6;
+            this.dices.dieSpots = 0;
+            this.dices.dieVisible = [
+                { number: 1, active: true },
+                { number: 2, active: true },
+                { number: 3, active: false },
+                { number: 4, active: false },
+                ],
+            //fightDetails{}
+            this.resetFightDetails();
+            //battleLog messages
+            this.logMessages = [];
+            //another properties
             this.currentDices = [],
-            this. detailsSaved= false,
-            this.roundCounter = 1;
+            this.detailsSaved= false,
+            this.savedDetailsEarlier= this.savedEarlier();
+            
+            this.actionButton= true,
+            this.attackAction= true,
+            this.fireBallAction= true,
+            this.lightningBoltAction= true,
+            this.healingAction= true,
+
+            this.surrender = false;
+
+            this.attackOrSpell= [0,0,1,0,0,1,0,1,0,0];
+        },
+        //Reset the fight's 'maybe' earlier changed details
+        resetFightDetails(){
+            this.fightDetails.startRound = false;
+            this.fightDetails.roundCounter = 1;
+            this.playerFullSpeed = '',
+            this.monsterFullSpeed= '',
+            this.fightDetails.roundsOrder = [false,false];
+            this.fightDetails.actionImageSource= 'img/hourglass.gif';
+        },
+        //SURRENDER the game
+        surrenderGame(){
+            this.player.playerImageSource = "img/graveyard.png";
+            this.fightDetails.actionImageSource= 'img/playerLose.png';
+            setTimeout(() => {
+                this.newGame();
+            }, 1500);
+            
+        },
+        //Start a NEW GAME
+        newGame(){
+            this.monster.health = this.monster.originalHealth;
+            this.monster.magic.mana = this.monster.originalMana;
+
+            this.player.health = this.player.originalHealth;
+            this.player.magic.mana = this.player.originalMana;
+
+            this.resetFightDetails();
+
+            this.monster.monsterImageSource = 'img/monster.png';
+            this.player.playerImageSource = 'img/player.png';
+
+            this.logMessages = [];
+
+            this.detailsSaved = false;
+
+            this.actionButton = true;
+        },
+
+        addLogMessage(who, whom, action, value, message){
+            //use .unshift() for put messages to top of the list, or .push() to put at the bottom
+            this.logMessages.push({
+                actionWho: who,
+                actionWhom: whom,
+                actionType: action,
+                actionValue: value,
+                actionMessage: message
+            });
+
+            //focus on last <li> element in the battleLog
+            setTimeout(() => {
+                let items = document.querySelectorAll(".logElements");
+                if(items.length > 0){
+                    let last = items[items.length-1];
+                    last.scrollIntoView();
+                }
+            }, 10);
+            
+            
         }
     },
 }).mount("#game");
@@ -840,5 +973,6 @@ const { ref, createApp } = Vue.createApp({
         Critical hit: add extra 5 point to damage if the attack point is over defense with 15
     
     5.
-                    
+    
+    TODO: disable surrender button when action is happening do fix a bug + https://jsfiddle.net/rvnj6mc3/
 */

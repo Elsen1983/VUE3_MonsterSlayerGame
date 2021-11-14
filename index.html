@@ -14,7 +14,7 @@
       <h2 class="topTitle">Monster Slayer Game</h2>
     </header>
     <div id="game">
-      <div v-show="detailsSaved === false">
+      <div v-if="!detailsSaved">
         <section id="setup" class="container">
           <form @submit.prevent="submitDetails">
             <!-- ---------- Monster's Details ----------- -->
@@ -67,13 +67,13 @@
                 <input type="checkbox" id="monsterMagic" name="monsterMagic" v-model.number="monster.hasMagic" @change="clearSpells('monster')" />
               </div>
               <br />
-              <div v-show="monster.hasMagic === true">
+              <div v-show="monster.hasMagic">
                 <label for="monsterMana">Mana Points (1 - 100): </label>
                 <input type="number" id="monsterMana" name="monsterMana" :required="monster.hasMagic === true" min="1" max="100" onKeyPress="return isNumber(event);" v-model.number="monster.magic.mana" />
                 <span class="validity"></span>
                 <br />
               </div>
-              <div v-show="monster.hasMagic === true">
+              <div v-show="monster.hasMagic">
                 <label for="monsterFireMagic"
                   ><span class="questionMarks"><img src="img/question-mark-in-a-circle.png" /></span>
                   Fireball:
@@ -81,7 +81,7 @@
                 <input type="checkbox" id="monsterFireMagic" name="monsterSpell" :checked="monster.magic.fireBallMagic" v-model="monster.magic.fireBallMagic" />
                 <br />
               </div>
-              <div v-show="monster.hasMagic === true">
+              <div v-show="monster.hasMagic">
                 <label for="monsterLightningMagic"
                   ><span class="questionMarks"><img src="img/question-mark-in-a-circle.png" /></span>
                   Lightning Bolt:
@@ -89,7 +89,7 @@
                 <input type="checkbox" id="monsterLightningMagic" name="monsterSpell" :checked="monster.magic.lightningBoltMagic" v-model="monster.magic.lightningBoltMagic" />
                 <br />
               </div>
-              <div v-show="monster.hasMagic === true">
+              <div v-show="monster.hasMagic">
                 <label for="monsterHealingMagic"
                   ><span class="questionMarks"><img src="img/question-mark-in-a-circle.png" /></span>
                   Healing:
@@ -97,7 +97,7 @@
                 <input type="checkbox" id="monsterHealingMagic" name="monsterSpell" :checked="monster.magic.healingMagic" v-model="monster.magic.healingMagic" />
                 <br />
               </div>
-              <p class="errors" v-if="errors.spellMissingMonster === true">Select at least one spell!</p>
+              <p class="errors" v-if="errors.spellMissingMonster">{{errors.spellRequested}}</p>
               <div v-if="errors.monsterErrorMessage !== ''" class="errorsContainer">
                 <p class="errors" id="monsterErrors">{{errors.monsterErrorMessage}}</p>
               </div>
@@ -152,13 +152,13 @@
                 <input type="checkbox" id="playerMagic" name="playerMagic" v-model.number="player.hasMagic" @change="clearSpells('player')" />
               </div>
               <br />
-              <div v-show="player.hasMagic === true">
+              <div v-show="player.hasMagic">
                 <label for="playerMana">Mana Points (1 - 100): </label>
                 <input type="number" id="playerMana" name="playerMana" :required="player.hasMagic === true" min="1" max="100" onKeyPress="return isNumber(event);" v-model.number="player.magic.mana" />
                 <span class="validity"></span>
                 <br />
               </div>
-              <div v-show="player.hasMagic === true">
+              <div v-show="player.hasMagic">
                 <label for="playerFireMagic"
                   ><span class="questionMarks"><img src="img/question-mark-in-a-circle.png" /></span>
                   Fireball:
@@ -166,7 +166,7 @@
                 <input type="checkbox" id="playerFireMagic" name="playerSpell" :checked="player.magic.fireBallMagic" v-model="player.magic.fireBallMagic" />
                 <br />
               </div>
-              <div v-show="player.hasMagic === true">
+              <div v-show="player.hasMagic">
                 <label for="playerLightningMagic"
                   ><span class="questionMarks"><img src="img/question-mark-in-a-circle.png" /></span>
                   Lightning Bolt:
@@ -174,7 +174,7 @@
                 <input type="checkbox" id="playerLightningMagic" name="playerSpell" :checked="player.magic.lightningBoltMagic" v-model="player.magic.lightningBoltMagic" />
                 <br />
               </div>
-              <div v-show="player.hasMagic === true">
+              <div v-show="player.hasMagic">
                 <label for="playerHealingMagic"
                   ><span class="questionMarks"><img src="img/question-mark-in-a-circle.png" /></span>
                   Healing:
@@ -182,49 +182,53 @@
                 <input type="checkbox" id="playerHealingMagic" name="playerSpell" :checked="player.magic.healingMagic" v-model="player.magic.healingMagic" />
                 <br />
               </div>
-              <p class="errors" v-if="errors.spellMissingPlayer === true">Select at least one spell!</p>
+              <p class="errors" v-show="errors.spellMissingPlayer">{{errors.spellRequested}}</p>
               <div v-if="errors.playerErrorMessage !== ''" class="errorsContainer">
                 <p class="errors" id="playerErrors">{{errors.playerErrorMessage}}</p>
               </div>
             </fieldset>
-            <p class="errors" v-if="errors.sameName === true">Names cannot be the same!</p>
+            <p class="errors" v-show="errors.sameName">{{errors.differentNamesRequested}}</p>
             <button type="button" @click="saveDetails">Save</button>
             <button type="button" :disabled="!savedDetailsEarlier" @click="loadDetails">Load</button>
-            <button type="button" @click="resetFields">Reset</button>
-            <button type="submit">Submit</button>
+            <button type="button" @click="resetData">Reset</button>
+            <button type="submit">Start Game</button>
           </form>
         </section>
       </div>
-      <div v-show="detailsSaved === true">
-        <section id="monster" class="container">
-          <h2>{{monster.name}} <span class="mOrp">(Monster)</span></h2>
-          <h4>Health ( {{monster.health}} / 100 )</h4>
-          <div class="healthBar">
-            <div class="healthBar__value" :style="{width: monsterCurrentHealth}"></div>
-          </div>
-          <h4>Mana ( {{monster.magic.mana}} / 100 )</h4>
-          <div class="manaBar">
-            <div class="manaBar__value" :style="{width: monsterCurrentMana}"></div>
-          </div>
-        </section>
-        <section id="player" class="container">
-          <h2>{{player.name}} <span class="mOrp">(Player)</span></h2>
-          <h4>Health ( {{player.health}} / 100 )</h4>
-          <div class="healthBar">
-            <div class="healthBar__value" :style="{width: playerCurrentHealth}"></div>
-          </div>
-          <h4>Mana ( {{player.magic.mana}} / 100 )</h4>
-          <div class="manaBar">
-            <div class="manaBar__value" :style="{width: playerCurrentMana}"></div>
-          </div>
-        </section>
+      <div v-else="detailsSaved">
+        <div id="barsContainer">
+          <section id="monster">
+            <h3>{{monster.name}} <span class="mOrp">(Monster)</span></h3>
+            <h4>Health ( {{monster.health}} / 100 )</h4>
+            <div class="healthBar">
+              <div class="healthBar__value" :style="{width: monsterCurrentHealth}"></div>
+            </div>
+            <h4>Mana ( {{monster.magic.mana}} / 100 )</h4>
+            <div class="manaBar">
+              <div class="manaBar__value" :style="{width: monsterCurrentMana}"></div>
+            </div>
+          </section>
+          <section id="player">
+            <h3>{{player.name}} <span class="mOrp">(Player)</span></h3>
+            <h4>Health ( {{player.health}} / 100 )</h4>
+            <div class="healthBar">
+              <div class="healthBar__value" :style="{width: playerCurrentHealth}"></div>
+            </div>
+            <h4>Mana ( {{player.magic.mana}} / 100 )</h4>
+            <div class="manaBar">
+              <div class="manaBar__value" :style="{width: playerCurrentMana}"></div>
+            </div>
+          </section>
+        </div>
+        
+
         <section class="container">
-          <h2 id="roundCounter"><span id="roundCounterSpan">ROUND <span id="roundCounterNumber">{{roundCounter}}</span></span></h2>
+          <h2 id="roundCounter"><span id="roundCounterSpan">ROUND <span id="roundCounterNumber">{{fightDetails.roundCounter}}</span></span></h2>
           <br>
           <div>
-            <span id="monsterIcon"><img :src="monsterImageSource" /></span>
-            <span id="actionDrawArea"><img :src="actionImageSource"></span>
-            <span id="playerIcon"><img :src="playerImageSource" /></span>
+            <span id="monsterIcon"><img :src="monster.monsterImageSource" /></span>
+            <span id="actionDrawArea"><img :src="fightDetails.actionImageSource"></span>
+            <span id="playerIcon"><img :src="player.playerImageSource" /></span>
           </div>
           
           <!-- Dice(s) -->
@@ -240,21 +244,38 @@
         </section>
         <section id="buttonsAndLog" class="container">
           <section id="controls">
-            <button v-if="actionButton" :disabled="fightDetails.startRound" @click="startRoundRoll">WHO START</button>
-            <button v-if="actionButton" :disabled="attackAction" @click="playerAction('attack')">ATTACK</button>
-            <button v-if="actionButton" :disabled="fireBallAction" @click="playerAction('fire')">FIREBALL</button>
-            <button v-if="actionButton" :disabled="lightningBoltAction" @click="playerAction('lightning')">LIGHTNING BOLT</button>
-            <button v-if="actionButton" :disabled="healingAction" @click="playerAction('heal')">HEALING</button>
-            <button v-if="!actionButton" @click="newGameStart">NEW GAME</button>
+            <button v-if="actionButton" :disabled="fightDetails.startRound" @click="startRoundRoll" class="actionButtonsClass">WHO START</button>
+            <button v-if="actionButton" :disabled="attackAction" @click="playerAction('attack')" class="actionButtonsClass">ATTACK</button>
+            <button v-if="actionButton" :disabled="fireBallAction" @click="playerAction('fire')" class="actionButtonsClass">FIREBALL</button>
+            <button v-if="actionButton" :disabled="lightningBoltAction" @click="playerAction('lightning')" class="actionButtonsClass">LIGHTNING BOLT</button>
+            <button v-if="actionButton" :disabled="healingAction" @click="playerAction('heal')" class="actionButtonsClass">HEALING</button>
+            <button v-if="!actionButton" @click="newGame" class="actionButtonsClass">NEW GAME</button>
+            <button v-if="actionButton" :disabled="surrender" @click="surrenderGame" class="actionButtonsClass">SURRENDER</button>
           </section>
           <section id="log">
             <h2>Battle Log</h2>
-            <ul></ul>
+            <ul class="logData">
+              <li v-for="logMessage in logMessages" class="logElements">
+                <!-- Who did the action ... name of the player or monster-->
+                <span v-if="logMessage.actionWho !== ''" :class="{'log--player': logMessage.actionWho === player.name, 'log--monster': logMessage.actionWho === monster.name }">
+                  {{ logMessage.actionWho === player.name ? player.name : monster.name}}
+                </span>
+                <!-- What action happened ... 1-heal, 2-attack, 3-fireball, 4-lightning -->
+                <span v-if="logMessage.actionType === 'heal'"> healed on himself <span class="log--heal">{{logMessage.actionValue}}</span> health points.</span>
+                <span v-else-if="logMessage.actionType === 'attack'"> attacked <span :class="{'log--player': logMessage.actionWhom === player.name, 'log--monster': logMessage.actionWhom === monster.name }"> {{logMessage.actionWhom}}</span> and dealt <span class="log--damage">{{logMessage.actionValue}}</span> damage.</span>
+                <span v-else-if="logMessage.actionType === 'crit-attack'"> attacked <span :class="{'log--player': logMessage.actionWhom === player.name, 'log--monster': logMessage.actionWhom === monster.name }"> {{logMessage.actionWhom}}</span> and dealt a <u>critical</u> <span class="log--damage">{{logMessage.actionValue}}</span> damage.</span>
+                <span v-else-if="logMessage.actionType === 'defended'"> attacked <span :class="{'log--player': logMessage.actionWhom === player.name, 'log--monster': logMessage.actionWhom === monster.name }"> {{logMessage.actionWhom}}</span> <u>unsuccessfully</u> so dealt <span class="log--damage">{{logMessage.actionValue}}</span> damage.</span>
+                <span v-else-if="logMessage.actionType === 'fireball'"> used <strong class="log--fire">FireBall</strong> against <span :class="{'log--player': logMessage.actionWhom === player.name, 'log--monster': logMessage.actionWhom === monster.name }"> {{logMessage.actionWhom}}</span> and dealt <span class="log--damage">{{logMessage.actionValue}}</span> damage.</span>
+                <span v-else-if="logMessage.actionType === 'lightning'"> used <strong class="log--lightning">LightningBolt</strong> against <span :class="{'log--player': logMessage.actionWhom === player.name, 'log--monster': logMessage.actionWhom === monster.name }"> {{logMessage.actionWhom}}</span> and dealt <span class="log--damage">{{logMessage.actionValue}}</span> damage.</span>
+                <span v-else-if="logMessage.actionType === 'message'">{{logMessage.actionMessage}}</span>
+                <span v-else></span>
+              </li>
+            </ul>
           </section>
         </section>
-        <section class="container">
+        <!-- <section class="container">
           <button :disabled="surrender">SURRENDER</button>
-        </section>
+        </section> -->
       </div>
     </div>
   </body>
